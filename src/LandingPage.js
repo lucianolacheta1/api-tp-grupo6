@@ -24,7 +24,8 @@ function LandingPage() {
 function Header() {
   return (
     <header className="text-center my-5" data-aos="fade-up"> {/* Aparece con un efecto de fade-up */}
-      <h1>SplitWise.</h1>
+      <h1 className="display-1">SplitWise.</h1>
+
       <p className="lead">
         ¡Gestiona tus gastos compartidos de manera fácil y rápida!
       </p>
@@ -41,7 +42,7 @@ function Header() {
 // Sección de "¿Cómo Funciona?"
 function HowItWorks() {
   return (
-    <section className="my-5" data-aos="fade-up"> {/* Fade-up al hacer scroll */}
+    <section className="my-5" data-aos="fade-up">
       <h2 className="text-center mb-4">¿Cómo Funciona?</h2>
       <div className="row align-items-center mb-5">
         <div className="col-12 col-md-6 text-center">
@@ -103,7 +104,7 @@ function Footer() {
     <footer className="text-center my-5" data-aos="fade-up">
       <p className="lead">Empieza Ahora Mismo!</p>
       <a href="/signup" className="btn btn-primary btn-lg mt-3">Regístrate</a>
-      <p className="mt-3">&copy; SplitWise, 2023</p>
+      <p className="mt-3">&copy; SplitWise, 2024</p>
     </footer>
   );
 }

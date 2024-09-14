@@ -1,29 +1,203 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-function LoginModal() {
+function LoginModal({ setAuthenticatedUser }) {
+  const [view, setView] = useState('login');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const modalElement = document.getElementById('loginModal');
+    if (modalElement) {
+      window.bootstrap.Modal.getOrCreateInstance(modalElement);
+    }
+  }, []);
+
+  const validateUsername = (username) => {
+    return username.length >= 4;
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    return passwordRegex.test(password);
+  };
+
+  // Handle form submission for login
+  const handleLoginSubmit = (e) => {
+    e.preventDefault(); // Prevent page reload
+    const newErrors = {};
+
+    if (!validateUsername(username)) {
+      newErrors.username = 'El nombre de usuario debe tener al menos 4 caracteres.';
+    }
+
+    if (!validatePassword(password)) {
+      newErrors.password = 'La contraseña debe tener al menos 8 caracteres, incluir 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial.';
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      setAuthenticatedUser(username);
+
+      const modalElement = document.getElementById('loginModal');
+      if (modalElement) {
+        const modalInstance = window.bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      }
+    }
+  };
+
+  // Handle form submission for registration
+  const handleRegisterSubmit = (e) => {
+    e.preventDefault(); // Prevent page reload
+    const newErrors = {};
+
+    if (!validateUsername(username)) {
+      newErrors.username = 'El nombre de usuario debe tener al menos 4 caracteres.';
+    }
+
+    if (!validateEmail(email)) {
+      newErrors.email = 'El correo electrónico no es válido.';
+    }
+
+    if (!validatePassword(password)) {
+      newErrors.password = 'La contraseña debe tener al menos 8 caracteres, incluir 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial.';
+    }
+
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden.';
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      setAuthenticatedUser(username);
+
+      const modalElement = document.getElementById('loginModal');
+      if (modalElement) {
+        const modalInstance = window.bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      }
+    }
+  };
+
   return (
     <div className="modal fade" id="loginModal" tabIndex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title" id="loginModalLabel">Iniciar sesión</h5>
+            <h5 className="modal-title" id="loginModalLabel">
+              {view === 'login' ? 'Iniciar sesión' : view === 'register' ? 'Registrarse' : 'Recuperar Contraseña'}
+            </h5>
             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div className="modal-body">
-            <form>
-              <div className="mb-3">
-                <label htmlFor="email" className="form-label">Correo Electrónico</label>
-                <input type="email" className="form-control" id="email" />
-              </div>
-              <div className="mb-3">
-                <label htmlFor="password" className="form-label">Contraseña</label>
-                <input type="password" className="form-control" id="password" />
-              </div>
-            </form>
+            {view === 'login' && (
+              <form onSubmit={handleLoginSubmit}>
+                <div className="mb-3">
+                  <label htmlFor="username" className="form-label">Nombre de Usuario</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                  {errors.username && <small className="text-danger">{errors.username}</small>}
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label">Contraseña</label>
+                  <input 
+                    type="password" 
+                    className="form-control" 
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  {errors.password && <small className="text-danger">{errors.password}</small>}
+                </div>
+                <button type="submit" className="btn btn-primary">Iniciar sesión</button>
+              </form>
+            )}
+
+            {view === 'register' && (
+              <form onSubmit={handleRegisterSubmit}>
+                <div className="mb-3">
+                  <label htmlFor="username" className="form-label">Nombre de Usuario</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                  {errors.username && <small className="text-danger">{errors.username}</small>}
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label">Correo Electrónico</label>
+                  <input 
+                    type="email" 
+                    className="form-control" 
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  {errors.email && <small className="text-danger">{errors.email}</small>}
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label">Contraseña</label>
+                  <input 
+                    type="password" 
+                    className="form-control" 
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  {errors.password && <small className="text-danger">{errors.password}</small>}
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="confirmPassword" className="form-label">Confirmar Contraseña</label>
+                  <input 
+                    type="password" 
+                    className="form-control" 
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                  {errors.confirmPassword && <small className="text-danger">{errors.confirmPassword}</small>}
+                </div>
+                <button type="submit" className="btn btn-primary">Registrarse</button>
+              </form>
+            )}
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            <button type="button" className="btn btn-primary">Iniciar sesión</button>
+          <div className="modal-footer d-flex justify-content-between">
+            {view === 'login' ? (
+              <>
+                <div>
+                  <a href="#!" onClick={() => setView('register')} className="text-primary">Registrarse</a> | 
+                  <a href="#!" onClick={() => setView('recover')} className="text-primary ms-2">Recuperar Contraseña</a>
+                </div>
+                <div>
+                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </>
+            ) : (
+              <div>
+                <button type="button" className="btn btn-secondary" onClick={() => setView('login')}>Volver</button>
+              </div>
+            )}
           </div>
         </div>
       </div>
