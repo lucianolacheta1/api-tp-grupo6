@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-function LoginModal({ setAuthenticatedUser }) {
-  const [view, setView] = useState('login');
+function LoginModal({ setAuthenticatedUser, view, setView }) {  // Recibimos view y setView desde App.js
+
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,6 +12,10 @@ function LoginModal({ setAuthenticatedUser }) {
     const modalElement = document.getElementById('loginModal');
     if (modalElement) {
       window.bootstrap.Modal.getOrCreateInstance(modalElement);
+      modalElement.addEventListener('hidden.bs.modal', () => {
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) backdrop.remove();
+      });
     }
   }, []);
 
@@ -29,9 +33,7 @@ function LoginModal({ setAuthenticatedUser }) {
     return passwordRegex.test(password);
   };
 
-  // Handle form submission for login
-  const handleLoginSubmit = (e) => {
-    e.preventDefault(); // Prevent page reload
+  const handleLoginSubmit = () => {
     const newErrors = {};
 
     if (!validateUsername(username)) {
@@ -52,14 +54,15 @@ function LoginModal({ setAuthenticatedUser }) {
         const modalInstance = window.bootstrap.Modal.getInstance(modalElement);
         if (modalInstance) {
           modalInstance.hide();
+
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) backdrop.remove();
         }
       }
     }
   };
 
-  // Handle form submission for registration
-  const handleRegisterSubmit = (e) => {
-    e.preventDefault(); // Prevent page reload
+  const handleRegisterSubmit = () => {
     const newErrors = {};
 
     if (!validateUsername(username)) {
@@ -88,6 +91,9 @@ function LoginModal({ setAuthenticatedUser }) {
         const modalInstance = window.bootstrap.Modal.getInstance(modalElement);
         if (modalInstance) {
           modalInstance.hide();
+
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) backdrop.remove();
         }
       }
     }
@@ -105,7 +111,7 @@ function LoginModal({ setAuthenticatedUser }) {
           </div>
           <div className="modal-body">
             {view === 'login' && (
-              <form onSubmit={handleLoginSubmit}>
+              <form>
                 <div className="mb-3">
                   <label htmlFor="username" className="form-label">Nombre de Usuario</label>
                   <input 
@@ -128,12 +134,11 @@ function LoginModal({ setAuthenticatedUser }) {
                   />
                   {errors.password && <small className="text-danger">{errors.password}</small>}
                 </div>
-                <button type="submit" className="btn btn-primary">Iniciar sesión</button>
               </form>
             )}
 
             {view === 'register' && (
-              <form onSubmit={handleRegisterSubmit}>
+              <form>
                 <div className="mb-3">
                   <label htmlFor="username" className="form-label">Nombre de Usuario</label>
                   <input 
@@ -178,7 +183,6 @@ function LoginModal({ setAuthenticatedUser }) {
                   />
                   {errors.confirmPassword && <small className="text-danger">{errors.confirmPassword}</small>}
                 </div>
-                <button type="submit" className="btn btn-primary">Registrarse</button>
               </form>
             )}
           </div>
@@ -191,11 +195,15 @@ function LoginModal({ setAuthenticatedUser }) {
                 </div>
                 <div>
                   <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                  <button type="button" className="btn btn-primary" onClick={handleLoginSubmit}>Iniciar sesión</button>
                 </div>
               </>
             ) : (
               <div>
                 <button type="button" className="btn btn-secondary" onClick={() => setView('login')}>Volver</button>
+                <button type="button" className="btn btn-primary" onClick={handleRegisterSubmit}>
+                  Registrarse
+                </button>
               </div>
             )}
           </div>
