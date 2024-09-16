@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
-function LandingPage({ setView }) {  // Recibimos setView desde App.js
+function LandingPage({ setView }) {
   useEffect(() => {
     AOS.init({
       duration: 1000,  // Duración de la animación en milisegundos
