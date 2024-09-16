@@ -5,14 +5,14 @@ import 'aos/dist/aos.css';
 function LandingPage({ setView }) {
   useEffect(() => {
     AOS.init({
-      duration: 1000,  // Duración de la animación en milisegundos
+      duration: 1000,
     });
   }, []);
 
   const openRegisterModal = () => {
-    setView('register');  // Cambiamos la vista del modal a 'register'
+    setView('register');
     const loginModal = new window.bootstrap.Modal(document.getElementById('loginModal'));
-    loginModal.show();  // Mostramos el modal de registro
+    loginModal.show();
   };
 
   return (

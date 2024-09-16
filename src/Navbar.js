@@ -29,10 +29,15 @@ function Navbar({ authenticatedUser, handleLogout }) {
                   />
                   <div className="dropdown">
                     <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                      {authenticatedUser}
+                      {authenticatedUser.username}
                     </button>
                     <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                      <li><button className="dropdown-item" onClick={handleLogout}>Cerrar sesión</button></li>
+                      <li>
+                        <Link className="dropdown-item" to="/profile">Mi cuenta</Link>
+                      </li>
+                      <li>
+                        <button className="dropdown-item" onClick={handleLogout}>Cerrar sesión</button>
+                      </li>
                     </ul>
                   </div>
                 </div>
