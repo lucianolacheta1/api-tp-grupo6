@@ -1,36 +1,64 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Navbar from './Navbar';
-import LandingPage from './LandingPage';
-import LoginModal from './LoginModal';
-import Dashboard from './Dashboard';
-import ProfilePage from './ProfilePage';
+// src/App.js
+import React, { useState, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import NavigationBar from './components/Common/Navbar';
+import LandingPage from './components/LandingPage/LandingPage';
+import Dashboard from './components/Dashboard/Dashboard';
+import ProfilePage from './components/ProfilePage/ProfilePage';
+import PrivateRoute from './components/Common/PrivateRoute';
+import LoginModal from './components/Auth/LoginModal';
+import { AuthProvider } from './AuthContext';
 
 function App() {
-  const [authenticatedUser, setAuthenticatedUser] = useState(
-    JSON.parse(localStorage.getItem('user')) || null
-  );
-  const [view, setView] = useState('login');
+  // Estado para manejar el modal de inicio de sesión
+  const [showModal, setShowModal] = useState(false);
+  const [modalView, setModalView] = useState('login');
 
-  const handleLogout = () => {
-    setAuthenticatedUser(null);
-    localStorage.removeItem('user');
-  };
+  const openLoginModal = useCallback((view = 'login') => {
+    setModalView(view);
+    setShowModal(true);
+  }, []);
 
   return (
-    <Router>
-      <div>
-        <Navbar authenticatedUser={authenticatedUser} handleLogout={handleLogout} />
-        <Routes>
-          <Route path="/" element={<LandingPage setView={setView} />} />
-          <Route path="/features" element={<div>Características</div>} />
-          <Route path="/pricing" element={<div>Precios</div>} />
-          <Route path="/dashboard" element={authenticatedUser ? <Dashboard authenticatedUser={authenticatedUser} /> : <Navigate to="/" />} />
-          <Route path="/profile" element={authenticatedUser ? <ProfilePage authenticatedUser={authenticatedUser} /> : <Navigate to="/" />}/>
-        </Routes>
-        <LoginModal setAuthenticatedUser={setAuthenticatedUser} view={view} setView={setView} />
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div>
+          <NavigationBar openLoginModal={openLoginModal} />
+          <Routes>
+            <Route
+              path="/"
+              element={<LandingPage openLoginModal={openLoginModal} />}
+            />
+            {/* Rutas públicas adicionales */}
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <ProfilePage />
+                </PrivateRoute>
+              }
+            />
+            {/* Ruta para manejar páginas no encontradas */}
+            <Route path="*" element={<div>Página no encontrada</div>} />
+          </Routes>
+          {/* Modal de inicio de sesión */}
+          <LoginModal
+            showModal={showModal}
+            setShowModal={setShowModal}
+            modalView={modalView}
+            setModalView={setModalView}
+          />
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
