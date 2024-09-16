@@ -49,7 +49,7 @@ function HowItWorks({ openRegisterModal }) {
       <div className="row align-items-center mb-5">
         <div className="col-12 col-md-6 text-center">
           <img 
-            src="tickets-image.jpg" 
+            src="tickets-image.png" 
             alt="Sube tus Tickets" 
             className="img-fluid mb-3" 
           />
@@ -74,7 +74,7 @@ function HowItWorks({ openRegisterModal }) {
         </div>
         <div className="col-12 col-md-6 text-center">
           <img 
-            src="divide-image.jpg" 
+            src="divide-image.png" 
             alt="Divide y Calcula" 
             className="img-fluid mb-3" 
           />
@@ -86,7 +86,7 @@ function HowItWorks({ openRegisterModal }) {
 
 function WhyChooseUs() {
   return (
-    <section className="bg-light py-5" data-aos="fade-up">
+    <section className="bg-light py-5" data-aos="fade-up" style={{ borderRadius: '20px'}}>
       <h2 className="text-center mb-4">¿Por Qué Elegirnos?</h2>
       <div className="container">
         <ul className="list-group list-group-flush">
