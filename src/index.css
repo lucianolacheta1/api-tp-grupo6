@@ -1,5 +1,10 @@
 /* src/index.css */
 
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+
 body {
     padding-top: 56px; /* Ajusta este valor según la altura de tu Navbar */
   }

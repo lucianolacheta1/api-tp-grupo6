@@ -50,17 +50,17 @@ function ProfilePage() {
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="mb-4">Información de Usuario</h2>
-      <div className="row">
-        <div className="col-md-3 text-center">
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="mb-4 py-3">Información de Usuario</h2>
+      <div className="row shadow-lg rounded-3 border border-gray-300 p-3">
+        <div className="col-md-3 text-center pt-5">
           <img
             src={profilePicture || '/assets/default-avatar.png'}
             alt="Foto de perfil"
             className="img-fluid rounded-circle mb-3"
             style={{ width: '150px', height: '150px', objectFit: 'cover' }}
           />
-          <label className="btn btn-primary mb-3" htmlFor="fileInput">
+          <label className="btn btn-primary mb-3 hover:shadow-lg transform transition-transform duration-300 hover:scale-105" htmlFor="fileInput">
             Cambiar foto de perfil
           </label>
           <input
