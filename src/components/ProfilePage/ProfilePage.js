@@ -51,7 +51,7 @@ function ProfilePage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="mb-4 py-3">Información de Usuario</h2>
+      <h2 className="mb-3 py-3">Información de Usuario</h2>
       <div className="row shadow-lg rounded-3 border border-gray-300 p-3">
         <div className="col-md-3 text-center pt-5">
           <img
@@ -60,7 +60,7 @@ function ProfilePage() {
             className="img-fluid rounded-circle mb-3"
             style={{ width: '150px', height: '150px', objectFit: 'cover' }}
           />
-          <label className="btn btn-primary mb-3 hover:shadow-lg transform transition-transform duration-300 hover:scale-105" htmlFor="fileInput">
+          <label className="btn btn-primary mb-3" htmlFor="fileInput">
             Cambiar foto de perfil
           </label>
           <input
@@ -116,77 +116,81 @@ function ProfilePage() {
       </div>
 
       {/* Configuración de Notificaciones */}
-      <h2 className="mt-5">Configuración de notificaciones</h2>
-      <div className="form-check mb-2">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          id="friendRequest"
-          name="friendRequest"
-          checked={notifications.friendRequest}
-          onChange={handleNotificationChange}
-        />
-        <label className="form-check-label" htmlFor="friendRequest">
-          Recibir notificaciones cuando un usuario me agregue como amigo.
-        </label>
-      </div>
-      <div className="form-check mb-2">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          id="addedToGroup"
-          name="addedToGroup"
-          checked={notifications.addedToGroup}
-          onChange={handleNotificationChange}
-        />
-        <label className="form-check-label" htmlFor="addedToGroup">
-          Recibir notificaciones cuando un usuario me agregue a un grupo.
-        </label>
-      </div>
-      <div className="form-check mb-4">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          id="expenseChanges"
-          name="expenseChanges"
-          checked={notifications.expenseChanges}
-          onChange={handleNotificationChange}
-        />
-        <label className="form-check-label" htmlFor="expenseChanges">
-          Recibir notificaciones cuando se añada, modifique o elimine un gasto.
-        </label>
+      <h2 className="mt-5 mb-3">Configuración de notificaciones</h2>
+      <div className="row shadow-lg rounded-3 border border-gray-300 pt-4 p-3 pb-0">
+        <div className="form-check mb-2">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="friendRequest"
+            name="friendRequest"
+            checked={notifications.friendRequest}
+            onChange={handleNotificationChange}
+          />
+          <label className="form-check-label" htmlFor="friendRequest">
+            Recibir notificaciones cuando un usuario me agregue como amigo.
+          </label>
+        </div>
+        <div className="form-check mb-2">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="addedToGroup"
+            name="addedToGroup"
+            checked={notifications.addedToGroup}
+            onChange={handleNotificationChange}
+          />
+          <label className="form-check-label" htmlFor="addedToGroup">
+            Recibir notificaciones cuando un usuario me agregue a un grupo.
+          </label>
+        </div>
+        <div className="form-check mb-4">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="expenseChanges"
+            name="expenseChanges"
+            checked={notifications.expenseChanges}
+            onChange={handleNotificationChange}
+          />
+          <label className="form-check-label" htmlFor="expenseChanges">
+            Recibir notificaciones cuando se añada, modifique o elimine un gasto.
+          </label>
+        </div>
       </div>
 
       {/* Configuración de Gastos */}
-      <h2 className="mt-5">Configuración de gastos</h2>
-      <div className="form-check mb-2">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          id="paymentReceived"
-          name="paymentReceived"
-          checked={notifications.paymentReceived}
-          onChange={handleNotificationChange}
-        />
-        <label className="form-check-label" htmlFor="paymentReceived">
-          Recibir notificaciones cuando reciba un pago.
-        </label>
-      </div>
-      <div className="form-check mb-4">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          id="paymentPending"
-          name="paymentPending"
-          checked={notifications.paymentPending}
-          onChange={handleNotificationChange}
-        />
-        <label className="form-check-label" htmlFor="paymentPending">
-          Recibir notificaciones cuando tenga un pago pendiente.
-        </label>
+      <h2 className="mt-5 mb-3">Configuración de gastos</h2>
+      <div className='row shadow-lg rounded-3 border border-gray-300 pt-4 p-3 pb-0 mb-4'>
+        <div className="form-check mb-2">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="paymentReceived"
+            name="paymentReceived"
+            checked={notifications.paymentReceived}
+            onChange={handleNotificationChange}
+          />
+          <label className="form-check-label" htmlFor="paymentReceived">
+            Recibir notificaciones cuando reciba un pago.
+          </label>
+        </div>
+        <div className="form-check mb-4">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="paymentPending"
+            name="paymentPending"
+            checked={notifications.paymentPending}
+            onChange={handleNotificationChange}
+          />
+          <label className="form-check-label" htmlFor="paymentPending">
+            Recibir notificaciones cuando tenga un pago pendiente.
+          </label>
+        </div>
       </div>
 
-      <div className="d-flex justify-content-between">
+      <div className="d-flex justify-content-between mb-3">
         <button className="btn btn-danger" onClick={handleDeleteAccount}>
           Eliminar cuenta
         </button>
