@@ -6,8 +6,6 @@ import ProjectManager from './ProjectManager';
 import ProjectDetails from './ProjectDetails';
 import FriendsManager from './FriendsManager';
 import ExpensesManager from './ExpensesManager';
-import UploadTicket from './UploadTicket';
-import TicketCard from './TicketCard'; // Importar el nuevo componente
 
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState('projects');
@@ -21,27 +19,27 @@ const Dashboard = () => {
     setActiveSection('projects');
   }, []);
 
-  const handleUploadTicket = useCallback(() => {
-    setActiveSection('uploadTicket');
-  }, []);
-
   const handleSelectProject = useCallback((projectId) => {
     const project = projects.find((proj) => proj.id === projectId);
     setSelectedProject(project);
+    setActiveSection('projectDetails');
   }, [projects]);
 
-  const handleUpdateProject = useCallback((updatedProject) => {
-    setProjects((prevProjects) =>
-      prevProjects.map((proj) =>
-        proj.id === updatedProject.id ? updatedProject : proj
-      )
-    );
-    setSelectedProject(updatedProject);
-  }, []);
-
-  const handleUpload = useCallback((ticketData) => {
+  const handleUploadTicketData = useCallback((ticketData) => {
     setTickets((prevTickets) => [...prevTickets, ticketData]);
-    setActiveSection('tickets'); // Cambiar a la sección de tickets después de cargar uno
+    if (selectedProject) {
+      const updatedProjects = projects.map((project) =>
+        project.id === selectedProject.id
+          ? { ...project, tickets: [...(project.tickets || []), ticketData] }
+          : project
+      );
+      setProjects(updatedProjects);
+    }
+  }, [selectedProject, projects]);
+
+  const handleBackToProjects = useCallback(() => {
+    setSelectedProject(null);
+    setActiveSection('projects');
   }, []);
 
   return (
@@ -51,7 +49,6 @@ const Dashboard = () => {
         <Col xs={12} md={3} lg={2} className="px-0">
           <Sidebar
             onAddProject={handleAddProject}
-            onUploadTicket={handleUploadTicket}
             setActiveSection={setActiveSection}
           />
         </Col>
@@ -69,29 +66,23 @@ const Dashboard = () => {
           {selectedProject && (
             <ProjectDetails
               project={selectedProject}
-              onBack={() => setSelectedProject(null)}
-              onUpdateProject={handleUpdateProject}
+              onBack={handleBackToProjects}
+              onUpdateProject={(updatedProject) => {
+                const updatedProjects = projects.map((project) =>
+                  project.id === updatedProject.id ? updatedProject : project
+                );
+                setProjects(updatedProjects);
+                setSelectedProject(updatedProject);
+              }}
+              friends={friends}
+              setFriends={setFriends}
             />
           )}
-
           {activeSection === 'expenses' && (
             <ExpensesManager expenses={expenses} setExpenses={setExpenses} />
           )}
-
           {activeSection === 'friends' && (
             <FriendsManager friends={friends} setFriends={setFriends} />
-          )}
-
-          {activeSection === 'uploadTicket' && (
-            <UploadTicket onUpload={handleUpload} />
-          )}
-
-          {activeSection === 'tickets' && (
-            <Row xs={1} md={2} className="g-4">
-              {tickets.map((ticket, index) => (
-                <TicketCard key={index} ticket={ticket} />
-              ))}
-            </Row>
           )}
         </Col>
       </Row>

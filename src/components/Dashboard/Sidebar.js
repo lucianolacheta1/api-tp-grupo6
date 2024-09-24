@@ -3,7 +3,7 @@ import React from 'react';
 import { Button, ListGroup } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 
-const Sidebar = ({ onAddProject, onUploadTicket, setActiveSection }) => {
+const Sidebar = ({ onAddProject, setActiveSection }) => {
   return (
     <div className="bg-light vh-100 d-flex flex-column justify-content-between">
       <div>
@@ -11,9 +11,10 @@ const Sidebar = ({ onAddProject, onUploadTicket, setActiveSection }) => {
           <Button variant="primary" className="mb-2 w-100" onClick={onAddProject}>
             Añadir Proyecto
           </Button>
-          <Button variant="secondary" className="w-100" onClick={onUploadTicket}>
+          {/* Eliminar el botón de "Cargar mi Ticket" */}
+          {/* <Button variant="secondary" className="w-100" onClick={onUploadTicket}>
             Cargar mi Ticket
-          </Button>
+          </Button> */}
         </div>
 
         <div className="px-3">
@@ -28,9 +29,10 @@ const Sidebar = ({ onAddProject, onUploadTicket, setActiveSection }) => {
             <ListGroup.Item action onClick={() => setActiveSection('friends')}>
               Amigos
             </ListGroup.Item>
-            <ListGroup.Item action onClick={() => setActiveSection('tickets')}>
+            {/* Eliminar el botón de "Tickets" */}
+            {/* <ListGroup.Item action onClick={() => setActiveSection('tickets')}>
               Tickets
-            </ListGroup.Item>
+            </ListGroup.Item> */}
           </ListGroup>
         </div>
       </div>
@@ -47,7 +49,6 @@ const Sidebar = ({ onAddProject, onUploadTicket, setActiveSection }) => {
 
 Sidebar.propTypes = {
   onAddProject: PropTypes.func.isRequired,
-  onUploadTicket: PropTypes.func.isRequired,
   setActiveSection: PropTypes.func.isRequired,
 };
 

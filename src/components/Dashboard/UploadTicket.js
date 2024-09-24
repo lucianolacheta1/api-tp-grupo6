@@ -1,6 +1,6 @@
 // src/components/Dashboard/UploadTicket.js
 import React, { useState } from 'react';
-import { Button, Form, Modal} from 'react-bootstrap';
+import { Button, Form, Modal } from 'react-bootstrap';
 import { Formik, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
@@ -18,6 +18,7 @@ const UploadTicket = ({ onUpload }) => {
       const ticketData = {
         file,
         details: values.details,
+        date: values.date,
       };
       onUpload(ticketData);
       setFile(null);
@@ -27,6 +28,7 @@ const UploadTicket = ({ onUpload }) => {
   };
 
   const validationSchema = Yup.object().shape({
+    date: Yup.date().required('La fecha es obligatoria'),
     details: Yup.array().of(
       Yup.object().shape({
         product: Yup.string().required('El nombre del producto es obligatorio'),
@@ -47,7 +49,7 @@ const UploadTicket = ({ onUpload }) => {
         </Modal.Header>
         <Modal.Body>
           <Formik
-            initialValues={{ details: [{ product: '', amount: '' }] }}
+            initialValues={{ date: '', details: [{ product: '', amount: '' }] }}
             validationSchema={validationSchema}
             onSubmit={handleUpload}
           >
@@ -62,12 +64,26 @@ const UploadTicket = ({ onUpload }) => {
             }) => (
               <Form noValidate onSubmit={handleSubmit}>
                 <Form.Group>
-                <Form.Label>Subir Imagen del Ticket</Form.Label>
+                  <Form.Label>Subir Imagen del Ticket</Form.Label>
                   <Form.Control
                     type="file"
                     id="upload-ticket-file"
-                    onChange={handleFileChange} 
+                    onChange={handleFileChange}
                   />
+                </Form.Group>
+                <Form.Group controlId="date">
+                  <Form.Label>Fecha del Ticket</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="date"
+                    value={values.date}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    isInvalid={touched.date && errors.date}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.date}
+                  </Form.Control.Feedback>
                 </Form.Group>
                 <FieldArray name="details">
                   {({ push, remove }) => (
