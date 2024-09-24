@@ -87,11 +87,11 @@ const Dashboard = () => {
           )}
 
           {activeSection === 'tickets' && (
-            <div className="flex flex-wrap gap-4">
+            <Row xs={1} md={2} className="g-4">
               {tickets.map((ticket, index) => (
                 <TicketCard key={index} ticket={ticket} />
               ))}
-            </div>
+            </Row>
           )}
         </Col>
       </Row>
