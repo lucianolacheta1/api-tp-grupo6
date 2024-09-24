@@ -3,7 +3,7 @@ import React from 'react';
 import { Button, ListGroup } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 
-function Sidebar({ onAddProject, onUploadTicket, setActiveSection }) {
+const Sidebar = ({ onAddProject, onUploadTicket, setActiveSection }) => {
   return (
     <div className="bg-light vh-100 d-flex flex-column justify-content-between">
       <div>
@@ -28,6 +28,9 @@ function Sidebar({ onAddProject, onUploadTicket, setActiveSection }) {
             <ListGroup.Item action onClick={() => setActiveSection('friends')}>
               Amigos
             </ListGroup.Item>
+            <ListGroup.Item action onClick={() => setActiveSection('tickets')}>
+              Tickets
+            </ListGroup.Item>
           </ListGroup>
         </div>
       </div>
@@ -40,7 +43,7 @@ function Sidebar({ onAddProject, onUploadTicket, setActiveSection }) {
       </div>
     </div>
   );
-}
+};
 
 Sidebar.propTypes = {
   onAddProject: PropTypes.func.isRequired,

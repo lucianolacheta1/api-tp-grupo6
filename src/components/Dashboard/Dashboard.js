@@ -6,12 +6,15 @@ import ProjectManager from './ProjectManager';
 import ProjectDetails from './ProjectDetails';
 import FriendsManager from './FriendsManager';
 import ExpensesManager from './ExpensesManager';
+import UploadTicket from './UploadTicket';
+import TicketCard from './TicketCard'; // Importar el nuevo componente
 
-function Dashboard() {
+const Dashboard = () => {
   const [activeSection, setActiveSection] = useState('projects');
   const [projects, setProjects] = useState([]);
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [tickets, setTickets] = useState([]); // Estado para los tickets
   const [selectedProject, setSelectedProject] = useState(null);
 
   const handleAddProject = useCallback(() => {
@@ -19,7 +22,7 @@ function Dashboard() {
   }, []);
 
   const handleUploadTicket = useCallback(() => {
-    setActiveSection('expenses');
+    setActiveSection('uploadTicket');
   }, []);
 
   const handleSelectProject = useCallback((projectId) => {
@@ -34,6 +37,11 @@ function Dashboard() {
       )
     );
     setSelectedProject(updatedProject);
+  }, []);
+
+  const handleUpload = useCallback((ticketData) => {
+    setTickets((prevTickets) => [...prevTickets, ticketData]);
+    setActiveSection('tickets'); // Cambiar a la sección de tickets después de cargar uno
   }, []);
 
   return (
@@ -73,10 +81,22 @@ function Dashboard() {
           {activeSection === 'friends' && (
             <FriendsManager friends={friends} setFriends={setFriends} />
           )}
+
+          {activeSection === 'uploadTicket' && (
+            <UploadTicket onUpload={handleUpload} />
+          )}
+
+          {activeSection === 'tickets' && (
+            <div className="flex flex-wrap gap-4">
+              {tickets.map((ticket, index) => (
+                <TicketCard key={index} ticket={ticket} />
+              ))}
+            </div>
+          )}
         </Col>
       </Row>
     </Container>
   );
-}
+};
 
 export default Dashboard;
