@@ -5,6 +5,7 @@ import HowItWorks from './HowItWorks';
 import WhyChooseUs from './WhyChooseUs';
 import Footer from './Footer';
 
+
 function LandingPage({ openLoginModal }) {
   return (
     <div className="container">
