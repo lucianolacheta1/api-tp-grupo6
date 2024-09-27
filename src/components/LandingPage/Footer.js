@@ -20,7 +20,7 @@ function Footer({ openLoginModal }) {
           Regístrate
         </Button>
         <p className="mt-3" data-aos="fade-up" data-aos-delay="400">
-          &copy; SplitWise, 2024
+          &copy; FairSplit, 2024
         </p>
       </Container>
     </footer>

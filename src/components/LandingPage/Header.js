@@ -8,13 +8,13 @@ function Header({ openLoginModal }) {
     <header className="text-center my-5">
       <Container>
         <h1 className="display-1" data-aos="fade-up">
-          SplitWise.
+          FairSplit.
         </h1>
         <p className="lead" data-aos="fade-up" data-aos-delay="200">
           ¡Gestiona tus gastos compartidos de manera fácil y rápida!
         </p>
         <Card />
-        <h4 className="p-4 text-2xl leading-relaxed" data-aos="fade-up" data-aos-delay="700">
+        <h4 className="p-4 mt-4 text-2xl leading-relaxed" data-aos="fade-up" data-aos-delay="700">
           Sube tus tickets de compra,<br /> 
           divídelos entre tus amigos,<br/> 
           y mantén un control claro de cuánto debe cada uno.
@@ -22,7 +22,7 @@ function Header({ openLoginModal }) {
         <Button
           variant="primary"
           size="lg"
-          className="mt-4"
+          className="mt-2"
           onClick={() => openLoginModal('register')}
           data-aos="fade-up"
           data-aos-delay="600"
