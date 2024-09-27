@@ -6,6 +6,7 @@
 
 
 body {
-    padding-top: 56px; /* Ajusta este valor según la altura de tu Navbar */
+    padding-top: 56px;
+    padding-bottom: 56px;
   }
   

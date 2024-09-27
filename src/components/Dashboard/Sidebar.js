@@ -7,15 +7,6 @@ const Sidebar = ({ onAddProject, setActiveSection }) => {
   return (
     <div className="bg-light vh-100 d-flex flex-column justify-content-between">
       <div>
-        <div className="d-flex flex-column align-items-start mb-3 px-3 mt-3">
-          <Button variant="primary" className="mb-2 w-100" onClick={onAddProject}>
-            Añadir Proyecto
-          </Button>
-          {/* Eliminar el botón de "Cargar mi Ticket" */}
-          {/* <Button variant="secondary" className="w-100" onClick={onUploadTicket}>
-            Cargar mi Ticket
-          </Button> */}
-        </div>
 
         <div className="px-3">
           <h5 className="mt-4">Navegación</h5>

@@ -41,8 +41,6 @@ function NavigationBar({ openLoginModal }) {
               </>
             ) : (
               <>
-                <Nav.Link href="#features">Características</Nav.Link>
-                <Nav.Link href="#pricing">Precios</Nav.Link>
                 <Button variant="primary" onClick={() => openLoginModal('login')}>
                   Iniciar sesión
                 </Button>
