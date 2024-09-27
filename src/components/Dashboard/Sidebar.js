@@ -1,4 +1,3 @@
-// src/components/Sidebar.js
 import React from 'react';
 import { Button, ListGroup } from 'react-bootstrap';
 import PropTypes from 'prop-types';
@@ -11,10 +10,6 @@ const Sidebar = ({ onAddProject, setActiveSection }) => {
           <Button variant="primary" className="mb-2 w-100" onClick={onAddProject}>
             Añadir Proyecto
           </Button>
-          {/* Eliminar el botón de "Cargar mi Ticket" */}
-          {/* <Button variant="secondary" className="w-100" onClick={onUploadTicket}>
-            Cargar mi Ticket
-          </Button> */}
         </div>
 
         <div className="px-3">
@@ -29,16 +24,14 @@ const Sidebar = ({ onAddProject, setActiveSection }) => {
             <ListGroup.Item action onClick={() => setActiveSection('friends')}>
               Amigos
             </ListGroup.Item>
-            {/* Eliminar el botón de "Tickets" */}
-            {/* <ListGroup.Item action onClick={() => setActiveSection('tickets')}>
-              Tickets
-            </ListGroup.Item> */}
+            <ListGroup.Item action onClick={() => setActiveSection('history')}>
+              Historial y Reportes
+            </ListGroup.Item>
           </ListGroup>
         </div>
       </div>
 
       <div className="px-3 mb-3">
-        {/* Puedes agregar opciones de configuración o cerrar sesión aquí */}
         <Button variant="link" onClick={() => setActiveSection('settings')}>
           Configuración
         </Button>

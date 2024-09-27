@@ -11,7 +11,7 @@ function ProjectDetails({ project, onBack, onUpdateProject, friends, setFriends 
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [editingExpense, setEditingExpense] = useState(null);
-  const [isEquallyDivided, setIsEquallyDivided] = useState(true);
+
 
   const handleAddExpense = useCallback(
     (values, { resetForm }) => {
@@ -73,7 +73,7 @@ function ProjectDetails({ project, onBack, onUpdateProject, friends, setFriends 
       expenses: [
         ...(project.expenses || []),
         ...ticketData.details.map(detail => ({
-          id: detail.id, // Asegúrate de que cada detalle tenga un ID único
+          id: Date.now() + Math.random(), // Asegúrate de que cada detalle tenga un ID único
           description: detail.product,
           amount: detail.amount,
           date: ticketData.date,
@@ -89,7 +89,7 @@ function ProjectDetails({ project, onBack, onUpdateProject, friends, setFriends 
 
   const handleEditExpense = (expense) => {
     setEditingExpense(expense);
-    setIsEquallyDivided(expense.isEquallyDivided);
+
     setShowExpenseModal(true);
   };
 
@@ -110,14 +110,13 @@ function ProjectDetails({ project, onBack, onUpdateProject, friends, setFriends 
 
 
   const handleDeleteExpense = (expenseId) => {
-    // Filtrar los gastos para eliminar el gasto seleccionado
-    const updatedExpenses = (project.expenses || []).filter(expense => expense.id !== expenseId);
+    const updatedExpenses = project.expenses.filter(expense => expense.id !== expenseId);
   
-    // Actualizar los tickets eliminando el producto correspondiente
-    const updatedTickets = (project.tickets || []).map(ticket => ({
-      ...ticket,
-      details: ticket.details.filter(detail => detail.id !== expenseId),
-    })).filter(ticket => ticket.details.length > 0); // Eliminar la TicketCard si se queda sin productos
+    // Encontrar el ticket asociado al gasto eliminado
+    const updatedTickets = project.tickets.map(ticket => {
+      const updatedDetails = ticket.details.filter(detail => detail.id !== expenseId);
+      return { ...ticket, details: updatedDetails };
+    }).filter(ticket => ticket.details.length > 0); // Eliminar tickets sin detalles
   
     const updatedProject = {
       ...project,
@@ -175,7 +174,7 @@ function ProjectDetails({ project, onBack, onUpdateProject, friends, setFriends 
       <h4>Tickets</h4>
       <UploadTicket onUpload={handleUploadTicket} />
       {project.tickets && project.tickets.length > 0 ? (
-        <Row xs={1} md={2} className="g-4">
+        <Row xs={1} md={3} className="g-4">
           {project.tickets.map((ticket, index) => (
             <Col key={index}>
               <TicketCard ticket={ticket} />

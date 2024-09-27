@@ -1,11 +1,10 @@
-// src/components/ProjectManager/ProjectManager.js
 import React, { useState, useCallback } from 'react';
 import { ListGroup, Button, Modal, Form } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 
-function ProjectManager({ projects, setProjects, onSelectProject }) {
+function ProjectManager({ projects, setProjects, onSelectProject, onDeleteProject }) {
   const [showModal, setShowModal] = useState(false);
 
   const handleCreateProject = useCallback(
@@ -46,13 +45,25 @@ function ProjectManager({ projects, setProjects, onSelectProject }) {
                   <h5>{project.name}</h5>
                   <p>{project.description}</p>
                 </div>
-                <Button
-                  variant="outline-primary"
-                  size="sm"
-                  onClick={() => onSelectProject(project.id)}
-                >
-                  Ver Detalles
-                </Button>
+                <div>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => onSelectProject(project.id)}
+                    className=""
+                  >
+                    Ver Detalles
+                  </Button>
+                  {' '} {/* Añadir espacio entre los botones */}
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => onDeleteProject(project.id)}
+                    className=''
+                  >
+                    Eliminar
+                  </Button>
+                </div>
               </div>
             </ListGroup.Item>
           ))}
@@ -127,6 +138,7 @@ ProjectManager.propTypes = {
   projects: PropTypes.array.isRequired,
   setProjects: PropTypes.func.isRequired,
   onSelectProject: PropTypes.func.isRequired,
+  onDeleteProject: PropTypes.func.isRequired,
 };
 
 export default React.memo(ProjectManager);

@@ -2,6 +2,7 @@
 import React, { useContext } from 'react';
 import { Navbar, Nav, NavDropdown, Container, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { Link as ScrollLink } from 'react-scroll'; // Importar react-scroll
 import { AuthContext } from '../../AuthContext';
 import PropTypes from 'prop-types';
 
@@ -12,7 +13,7 @@ function NavigationBar({ openLoginModal }) {
     <Navbar bg="dark" variant="dark" expand="lg" fixed="top">
       <Container>
         <Navbar.Brand as={Link} to="/">
-          SplitWise
+          FairSplit
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -41,8 +42,9 @@ function NavigationBar({ openLoginModal }) {
               </>
             ) : (
               <>
-                <Nav.Link href="#features">Características</Nav.Link>
-                <Nav.Link href="#pricing">Precios</Nav.Link>
+                <ScrollLink to="whyChooseUs" smooth={true} duration={100} className="nav-link" href="#">
+                  Características
+                </ScrollLink>
                 <Button variant="primary" onClick={() => openLoginModal('login')}>
                   Iniciar sesión
                 </Button>
