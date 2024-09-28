@@ -42,12 +42,9 @@ function NavigationBar({ openLoginModal }) {
               </>
             ) : (
               <>
-<<<<<<< HEAD
-=======
                 <ScrollLink to="whyChooseUs" smooth={true} duration={100} className="nav-link" href="#">
                   Características
                 </ScrollLink>
->>>>>>> b171919793d715b1a39e1b19686746b8c55a2900
                 <Button variant="primary" onClick={() => openLoginModal('login')}>
                   Iniciar sesión
                 </Button>

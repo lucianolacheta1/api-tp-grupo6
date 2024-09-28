@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { ListGroup, Button, Modal, Form } from 'react-bootstrap';
+import { ListGroup, Button, Modal, Form, Card } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -25,7 +25,7 @@ function ProjectManager({ projects, setProjects, onSelectProject, onDeleteProjec
 
   const validationSchema = Yup.object().shape({
     projectName: Yup.string().required('El nombre del proyecto es obligatorio'),
-    projectDescription: Yup.string().required('La descripción es obligatoria'),
+    projectDescription: Yup.string(),
   });
 
   return (
@@ -39,33 +39,35 @@ function ProjectManager({ projects, setProjects, onSelectProject, onDeleteProjec
       ) : (
         <ListGroup>
           {projects.map((project) => (
-            <ListGroup.Item key={project.id}>
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h5>{project.name}</h5>
-                  <p>{project.description}</p>
+            <Card key={project.id} className="mb-3 shadow-sm">
+              <Card.Body>
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <Card.Title>{project.name}</Card.Title>
+                    <Card.Text>{project.description}</Card.Text>
+                  </div>
+                  <div>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      onClick={() => onSelectProject(project.id)}
+                      className="mr-2"
+                    >
+                      Ver Detalles
+                    </Button>
+                    {' '} {/* Añadir espacio entre los botones */}
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => onDeleteProject(project.id)}
+                      className="ml-2"
+                    >
+                      Eliminar
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    onClick={() => onSelectProject(project.id)}
-                    className=""
-                  >
-                    Ver Detalles
-                  </Button>
-                  {' '} {/* Añadir espacio entre los botones */}
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={() => onDeleteProject(project.id)}
-                    className=''
-                  >
-                    Eliminar
-                  </Button>
-                </div>
-              </div>
-            </ListGroup.Item>
+              </Card.Body>
+            </Card>
           ))}
         </ListGroup>
       )}

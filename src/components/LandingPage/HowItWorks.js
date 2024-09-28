@@ -17,7 +17,7 @@ function HowItWorks({ openLoginModal }) {
               className="img-fluid mb-3"
             />
           </Col>
-          <Col md={6} data-aos="fade-left">
+          <Col md={6} data-aos="fade-left" className="order-md-1">
             <h3>Sube tus Tickets</h3>
             <p>
               Captura una imagen de tus tickets de compra o ingresa los detalles manualmente.

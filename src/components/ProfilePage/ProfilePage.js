@@ -1,7 +1,7 @@
-// src/components/ProfilePage.js
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Modal, Button } from 'react-bootstrap';
 
 function ProfilePage() {
   const { authenticatedUser, logout } = useContext(AuthContext);
@@ -11,7 +11,6 @@ function ProfilePage() {
   const [username, setUsername] = useState(authenticatedUser.username || '');
   const [email, setEmail] = useState(authenticatedUser.email || '');
   const [phone, setPhone] = useState('');
-  const [language, setLanguage] = useState('Español');
   const [profilePicture, setProfilePicture] = useState(null);
 
   // Estados para configuraciones de notificaciones
@@ -22,6 +21,13 @@ function ProfilePage() {
     paymentReceived: false,
     paymentPending: false,
   });
+
+  // Estados para cambio de contraseña
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleNotificationChange = (e) => {
     setNotifications({
@@ -47,6 +53,14 @@ function ProfilePage() {
     if (file) {
       setProfilePicture(URL.createObjectURL(file));
     }
+  };
+
+  const handleChangePassword = () => {
+    // Lógica para cambiar la contraseña en el backend
+    alert('Contraseña cambiada con éxito.');
+    setShowPasswordForm(false);
+    setCurrentPassword('');
+    setNewPassword('');
   };
 
   return (
@@ -90,7 +104,6 @@ function ProfilePage() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          {/* Otros campos de perfil */}
           <div className="mb-3">
             <label className="form-label">Número de Teléfono</label>
             <input
@@ -101,16 +114,37 @@ function ProfilePage() {
             />
           </div>
           <div className="mb-3">
-            <label className="form-label">Idioma</label>
-            <select
-              className="form-select"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowPasswordForm(!showPasswordForm)}
             >
-              <option>Español</option>
-              <option>Inglés</option>
-              {/* Otros idiomas */}
-            </select>
+              Cambiar Contraseña
+            </button>
+            {showPasswordForm && (
+              <div className="mt-3">
+                <div className="mb-3">
+                  <label className="form-label">Contraseña Actual</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Nueva Contraseña</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <button className="btn btn-primary" onClick={handleChangePassword}>
+                  Cambiar
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -191,7 +225,7 @@ function ProfilePage() {
       </div>
 
       <div className="d-flex justify-content-between mb-3">
-        <button className="btn btn-danger" onClick={handleDeleteAccount}>
+        <button className="btn btn-danger" onClick={() => setShowDeleteModal(true)}>
           Eliminar cuenta
         </button>
         <button className="btn btn-secondary" onClick={logout}>
@@ -201,6 +235,25 @@ function ProfilePage() {
           Guardar
         </button>
       </div>
+
+
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación de Cuenta</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleDeleteAccount}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
     </div>
   );
 }

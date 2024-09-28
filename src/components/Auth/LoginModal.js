@@ -20,7 +20,9 @@ function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
   const validationSchemas = {
     login: Yup.object().shape({
       username: Yup.string().required('El nombre de usuario es obligatorio'),
-      password: Yup.string().required('La contraseña es obligatoria'),
+      password: Yup.string()
+        .required('La contraseña es obligatoria')
+        .min(6, 'La contraseña debe tener al menos 6 caracteres'),
     }),
     register: Yup.object().shape({
       username: Yup.string().required('El nombre de usuario es obligatorio'),
