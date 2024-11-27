@@ -1,12 +1,11 @@
 import React from 'react';
-import { Button, ListGroup } from 'react-bootstrap';
+import { ListGroup } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 
 const Sidebar = ({ onAddProject, setActiveSection }) => {
   return (
     <div className="bg-light vh-100 d-flex flex-column justify-content-between">
       <div>
-
         <div className="px-3">
           <h5 className="mt-4">Navegación</h5>
           <ListGroup variant="flush">

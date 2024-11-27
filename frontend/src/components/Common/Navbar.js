@@ -3,11 +3,17 @@ import React, { useContext } from 'react';
 import { Navbar, Nav, NavDropdown, Container, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll'; // Importar react-scroll
-import { AuthContext } from '../../AuthContext';
+import { AuthContext } from '../Auth/AuthContext';
 import PropTypes from 'prop-types';
 
 function NavigationBar({ openLoginModal }) {
   const { authenticatedUser, logout } = useContext(AuthContext);
+
+  const handleLogout = () => {
+    // Eliminar el token JWT del almacenamiento local
+    localStorage.removeItem('token');
+    logout();
+  };
 
   return (
     <Navbar bg="dark" variant="dark" expand="lg" fixed="top">
@@ -35,7 +41,7 @@ function NavigationBar({ openLoginModal }) {
                     Mi cuenta
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item onClick={logout}>
+                  <NavDropdown.Item onClick={handleLogout}>
                     Cerrar sesión
                   </NavDropdown.Item>
                 </NavDropdown>

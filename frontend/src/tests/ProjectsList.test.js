@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
-import ProjectsList from './ProjectsList';
-import * as api from './api';
+import ProjectsList from '../components/Projects/ProjectsList';
+import * as api from '../api';
 
 jest.mock('./api');
 

@@ -1,11 +1,13 @@
-// src/components/LoginModal.js
 import React, { useContext } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
-import { AuthContext } from '../../AuthContext';
+import { AuthContext } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/api/auth';
 
 function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
   const { login } = useContext(AuthContext);
@@ -19,7 +21,7 @@ function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
   // Esquemas de validación con Yup
   const validationSchemas = {
     login: Yup.object().shape({
-      username: Yup.string().required('El nombre de usuario es obligatorio'),
+      email: Yup.string().email('Correo electrónico inválido').required('El correo electrónico es obligatorio'),
       password: Yup.string()
         .required('La contraseña es obligatoria')
         .min(6, 'La contraseña debe tener al menos 6 caracteres'),
@@ -47,30 +49,43 @@ function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
     password: '',
   };
 
-  const handleSubmit = (values, { setSubmitting, resetForm }) => {
-    // Aquí puedes manejar el envío del formulario
-    if (modalView === 'login') {
-      // Lógica de autenticación
-      const userData = { username: values.username, email: 'user@example.com' };
-      login(userData);
-      handleClose();
-      navigate('/dashboard');
-    } else if (modalView === 'register') {
-      // Lógica de registro
-      const userData = { username: values.username, email: values.email };
-      login(userData);
-      handleClose();
-      navigate('/dashboard');
-    } else if (modalView === 'recover') {
-      // Lógica de recuperación de contraseña
-      // Mostrar mensaje de éxito
-      alert('Se ha enviado un correo para restablecer tu contraseña.');
-      handleClose();
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    try {
+      if (modalView === 'login') {
+        // Lógica de autenticación
+        const response = await axios.post(`${API_URL}/login`, {
+          email: values.email,
+          password: values.password,
+        });
+        login({ token: response.data.token });
+        handleClose();
+        navigate('/dashboard');
+      } else if (modalView === 'register') {
+        // Lógica de registro
+        await axios.post(`${API_URL}/register`, {
+          username: values.username,
+          email: values.email,
+          password: values.password,
+        });
+        alert('Registro exitoso, ahora puedes iniciar sesión.');
+        setModalView('login');
+      } else if (modalView === 'recover') {
+        // Lógica de recuperación de contraseña
+        await axios.post(`${API_URL}/recover`, {
+          email: values.email,
+        });
+        alert('Se ha enviado un correo para restablecer tu contraseña.');
+        handleClose();
+      }
+    } catch (error) {
+      console.error('Error:', error.response?.data || error.message);
+      alert('Ha ocurrido un error. Por favor intenta nuevamente.');
+    } finally {
+      setSubmitting(false);
+      resetForm();
     }
-    setSubmitting(false);
-    resetForm();
   };
-
+  
   return (
     <Modal show={showModal} onHide={handleClose}>
       <Modal.Header closeButton>
@@ -99,6 +114,23 @@ function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
           }) => (
             <Form noValidate onSubmit={handleSubmit}>
               {modalView === 'register' && (
+                <Form.Group className="mb-3" controlId="formBasicUsername">
+                  <Form.Label>Nombre de Usuario</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="username"
+                    placeholder="Ingresa tu nombre de usuario"
+                    value={values.username}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    isInvalid={touched.username && errors.username}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.username}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              )}
+              {(modalView === 'login' || modalView === 'register') && (
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Correo Electrónico</Form.Label>
                   <Form.Control
@@ -116,38 +148,21 @@ function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
                 </Form.Group>
               )}
               {(modalView === 'login' || modalView === 'register') && (
-                <>
-                  <Form.Group className="mb-3" controlId="formBasicUsername">
-                    <Form.Label>Nombre de Usuario</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="username"
-                      placeholder="Ingresa tu nombre de usuario"
-                      value={values.username}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      isInvalid={touched.username && errors.username}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.username}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                  <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Contraseña</Form.Label>
-                    <Form.Control
-                      type="password"
-                      name="password"
-                      placeholder="Contraseña"
-                      value={values.password}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      isInvalid={touched.password && errors.password}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.password}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </>
+                <Form.Group className="mb-3" controlId="formBasicPassword">
+                  <Form.Label>Contraseña</Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="password"
+                    placeholder="Contraseña"
+                    value={values.password}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    isInvalid={touched.password && errors.password}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.password}
+                  </Form.Control.Feedback>
+                </Form.Group>
               )}
               {modalView === 'recover' && (
                 <Form.Group className="mb-3" controlId="formRecoverEmail">

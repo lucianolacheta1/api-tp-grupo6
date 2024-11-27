@@ -5,7 +5,7 @@ import 'aos/dist/aos.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { AuthProvider } from './AuthContext';
+import { AuthProvider } from './components/Auth/AuthContext';
 import AOS from 'aos';
 import './index.css';
 

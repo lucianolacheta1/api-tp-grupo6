@@ -5,50 +5,57 @@ import ProjectManager from './ProjectManager';
 import ProjectDetails from './ProjectDetails';
 import FriendsManager from './FriendsManager';
 import ExpensesManager from './ExpensesManager';
-import HistoryReports from './HistoryReports'; // Importar el nuevo componente
+import HistoryReports from './HistoryReports';
 
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState('projects');
   const [projects, setProjects] = useState([]);
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
-  const [tickets, setTickets] = useState([]); // Estado para los tickets
   const [selectedProject, setSelectedProject] = useState(null);
 
   const handleAddProject = useCallback(() => {
     setActiveSection('projects');
   }, []);
 
-  const handleSelectProject = useCallback((projectId) => {
-    const project = projects.find((proj) => proj.id === projectId);
-    setSelectedProject(project);
-    setActiveSection('projectDetails');
-  }, [projects]);
+  const handleSelectProject = useCallback(
+    (projectId) => {
+      const project = projects.find((proj) => proj.id === projectId);
+      setSelectedProject(project);
+      setActiveSection('projectDetails');
+    },
+    [projects]
+  );
 
-  const handleUploadTicketData = useCallback((ticketData) => {
-    setTickets((prevTickets) => [...prevTickets, ticketData]);
-    if (selectedProject) {
-      const updatedProjects = projects.map((project) =>
-        project.id === selectedProject.id
-          ? { ...project, tickets: [...(project.tickets || []), ticketData] }
-          : project
-      );
+  const handleUploadTicketData = useCallback(
+    (ticketData) => {
+      if (selectedProject) {
+        const updatedProjects = projects.map((project) =>
+          project.id === selectedProject.id
+            ? { ...project, tickets: [...(project.tickets || []), ticketData] }
+            : project
+        );
+        setProjects(updatedProjects);
+        setSelectedProject((prevSelectedProject) => ({
+          ...prevSelectedProject,
+          tickets: [...(prevSelectedProject.tickets || []), ticketData],
+        }));
+      }
+    },
+    [selectedProject, projects]
+  );
+
+  const handleDeleteProject = useCallback(
+    (projectId) => {
+      const updatedProjects = projects.filter((project) => project.id !== projectId);
       setProjects(updatedProjects);
-      setSelectedProject((prevSelectedProject) => ({
-        ...prevSelectedProject,
-        tickets: [...(prevSelectedProject.tickets || []), ticketData],
-      }));
-    }
-  }, [selectedProject, projects]);
-
-  const handleDeleteProject = useCallback((projectId) => {
-    const updatedProjects = projects.filter((project) => project.id !== projectId);
-    setProjects(updatedProjects);
-    if (selectedProject && selectedProject.id === projectId) {
-      setSelectedProject(null);
-      setActiveSection('projects');
-    }
-  }, [projects, selectedProject]);
+      if (selectedProject && selectedProject.id === projectId) {
+        setSelectedProject(null);
+        setActiveSection('projects');
+      }
+    },
+    [projects, selectedProject]
+  );
 
   const handleBackToProjects = useCallback(() => {
     setSelectedProject(null);
@@ -56,7 +63,7 @@ const Dashboard = () => {
   }, []);
 
   // Consolidar todos los tickets de todos los proyectos
-  const allTickets = projects.flatMap(project => project.tickets || []);
+  const allTickets = projects.flatMap((project) => project.tickets || []);
 
   return (
     <Container fluid className="mt-4">
@@ -76,7 +83,7 @@ const Dashboard = () => {
               projects={projects}
               setProjects={setProjects}
               onSelectProject={handleSelectProject}
-              onDeleteProject={handleDeleteProject} // Pasar la función de eliminar proyecto
+              onDeleteProject={handleDeleteProject}
             />
           )}
 
@@ -93,8 +100,8 @@ const Dashboard = () => {
               }}
               friends={friends}
               setFriends={setFriends}
-              onUploadTicketData={handleUploadTicketData} // Pasar la función de carga de tickets
-              tickets={selectedProject.tickets || []} // Pasar los tickets del proyecto seleccionado
+              onUploadTicketData={handleUploadTicketData}
+              tickets={selectedProject.tickets || []}
             />
           )}
           {activeSection === 'expenses' && (
@@ -104,7 +111,7 @@ const Dashboard = () => {
             <FriendsManager friends={friends} setFriends={setFriends} />
           )}
           {activeSection === 'history' && (
-            <HistoryReports tickets={allTickets} expenses={expenses} /> // Renderizar el componente HistoryReports con todos los tickets
+            <HistoryReports tickets={allTickets} expenses={expenses} />
           )}
         </Col>
       </Row>

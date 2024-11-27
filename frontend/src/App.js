@@ -7,7 +7,10 @@ import Dashboard from './components/Dashboard/Dashboard';
 import ProfilePage from './components/ProfilePage/ProfilePage';
 import PrivateRoute from './components/Common/PrivateRoute';
 import LoginModal from './components/Auth/LoginModal';
-import { AuthProvider } from './AuthContext';
+import ProjectsList from './components/Projects/ProjectsList';
+import { AuthProvider } from './components/Auth/AuthContext';
+
+
 
 function App() {
   // Estado para manejar el modal de inicio de sesión
@@ -43,6 +46,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <ProfilePage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <ProjectsList />
                 </PrivateRoute>
               }
             />

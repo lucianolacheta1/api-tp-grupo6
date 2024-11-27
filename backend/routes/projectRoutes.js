@@ -1,56 +1,23 @@
+// routes/projectRoutes.js
 const express = require('express');
+const { getAllProjects, createProject, getProjectById, updateProject, deleteProject } = require('../controllers/projectController');
+const authenticateToken = require('../middleware/authMiddleware');
+
 const router = express.Router();
-const Project = require('../models/Project');
 
-// Obtener todos los proyectos
-router.get('/', async (req, res) => {
-  try {
-    const projects = await Project.find();
-    res.json(projects);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+// Ruta para obtener todos los proyectos
+router.get('/', authenticateToken, getAllProjects);
 
-// Crear un nuevo proyecto
-router.post('/', async (req, res) => {
-  const project = new Project({
-    name: req.body.name,
-    detail: req.body.detail,
-    ticket: req.body.ticket,
-    expenses: req.body.expenses,
-    members: req.body.members,
-    totalExpense: req.body.totalExpense,
-    status: req.body.status,
-  });
+// Ruta para crear un nuevo proyecto
+router.post('/', authenticateToken, createProject);
 
-  try {
-    const newProject = await project.save();
-    res.status(201).json(newProject);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
+// Ruta para obtener un proyecto por ID
+router.get('/:id', authenticateToken, getProjectById);
 
-// Obtener un proyecto por ID
-router.get('/:id', getProject, (req, res) => {
-  res.json(res.project);
-});
+// Ruta para actualizar un proyecto por ID
+router.patch('/:id', authenticateToken, updateProject);
 
-// Middleware para obtener un proyecto por ID
-async function getProject(req, res, next) {
-  let project;
-  try {
-    project = await Project.findById(req.params.id);
-    if (project == null) {
-      return res.status(404).json({ message: 'Cannot find project' });
-    }
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-
-  res.project = project;
-  next();
-}
+// Ruta para eliminar un proyecto por ID
+router.delete('/:id', authenticateToken, deleteProject);
 
 module.exports = router;
