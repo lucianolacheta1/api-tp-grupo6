@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { AuthContext } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -10,8 +10,14 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000/api/auth';
 
 function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
-  const { login } = useContext(AuthContext);
+  const { login, authenticatedUser } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (authenticatedUser) {
+      navigate('/dashboard');
+    }
+  }, [authenticatedUser, navigate]);
 
   const handleClose = () => {
     setShowModal(false);
@@ -57,9 +63,8 @@ function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
           email: values.email,
           password: values.password,
         });
-        login({ token: response.data.token });
+        await login(response.data.token); // Este debería guardar el token y actualizar el contexto
         handleClose();
-        navigate('/dashboard');
       } else if (modalView === 'register') {
         // Lógica de registro
         await axios.post(`${API_URL}/register`, {

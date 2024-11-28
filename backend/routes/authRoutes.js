@@ -1,17 +1,16 @@
-// routes/authRoutes.js
 const express = require('express');
-const { registerUser, loginUser, getAuthenticatedUser } = require('../controllers/authController');
-const authenticateToken = require('../middleware/authMiddleware');
+const { register, login, getUser } = require('../controllers/authController');
+const { authenticateToken } = require('../middleware/authMiddleware'); // Cambia la importación aquí
 
 const router = express.Router();
 
 // Ruta para registrar un nuevo usuario
-router.post('/register', registerUser);
+router.post('/register', register);
 
 // Ruta para iniciar sesión
-router.post('/login', loginUser);
+router.post('/login', login);
 
 // Ruta para obtener la información del usuario autenticado
-router.get('/user', authenticateToken, getAuthenticatedUser);
+router.get('/user', authenticateToken, getUser);
 
 module.exports = router;

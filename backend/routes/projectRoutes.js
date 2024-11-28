@@ -1,7 +1,8 @@
 // routes/projectRoutes.js
 const express = require('express');
 const { getAllProjects, createProject, getProjectById, updateProject, deleteProject } = require('../controllers/projectController');
-const authenticateToken = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/authMiddleware');
+
 
 const router = express.Router();
 
