@@ -5,13 +5,16 @@ import { Formik, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
 
-const UploadTicket = ({ onUpload }) => {
+const UploadTicket = ({ onUpload, members }) => {
   const [showModal, setShowModal] = useState(false);
 
   const handleUpload = (values, { resetForm }) => {
     const ticketData = {
-      details: values.details,
       date: values.date,
+      products: values.details,
+      paidBy: values.paidBy,
+      divisionType: values.divisionType,
+      divisionMembers: values.divisionMembers,
     };
     onUpload(ticketData);
     resetForm();
@@ -20,6 +23,22 @@ const UploadTicket = ({ onUpload }) => {
 
   const validationSchema = Yup.object().shape({
     date: Yup.date().required('La fecha es obligatoria'),
+    paidBy: Yup.string().required('Debe seleccionar quién pagó el ticket'),
+    divisionType: Yup.string().required('Debe seleccionar un tipo de división'),
+    divisionMembers: Yup.array().when('divisionType', {
+      is: 'porcentual',
+      then: Yup.array().of(
+        Yup.object().shape({
+          memberId: Yup.string().required('Debe seleccionar un miembro'),
+          percentage: Yup.number()
+            .required('Debe ingresar un porcentaje')
+            .min(0, 'El porcentaje no puede ser menor a 0')
+            .max(100, 'El porcentaje no puede ser mayor a 100'),
+        })
+      ).test('sum-100', 'La suma de los porcentajes debe ser 100', (divisionMembers) =>
+        divisionMembers.reduce((total, member) => total + (member.percentage || 0), 0) === 100
+      ),
+    }),
     details: Yup.array().of(
       Yup.object().shape({
         product: Yup.string().required('El nombre del producto es obligatorio'),
@@ -40,7 +59,13 @@ const UploadTicket = ({ onUpload }) => {
         </Modal.Header>
         <Modal.Body>
           <Formik
-            initialValues={{ date: '', details: [{ product: '', amount: '' }] }}
+            initialValues={{
+              date: '',
+              details: [{ product: '', amount: '' }],
+              paidBy: '',
+              divisionType: 'equitativo',
+              divisionMembers: [],
+            }}
             validationSchema={validationSchema}
             onSubmit={handleUpload}
           >
@@ -68,6 +93,97 @@ const UploadTicket = ({ onUpload }) => {
                     {errors.date}
                   </Form.Control.Feedback>
                 </Form.Group>
+
+                <Form.Group controlId="paidBy" className="mt-3">
+                  <Form.Label>Pagado por</Form.Label>
+                  <Form.Control
+                    as="select"
+                    name="paidBy"
+                    value={values.paidBy}
+                    onChange={handleChange}
+                    isInvalid={touched.paidBy && errors.paidBy}
+                  >
+                    <option value="">Seleccione un miembro</option>
+                    {members.map((member) => (
+                      <option key={member._id} value={member._id}>
+                        {member.name}
+                      </option>
+                    ))}
+                  </Form.Control>
+                  <Form.Control.Feedback type="invalid">
+                    {errors.paidBy}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group controlId="divisionType" className="mt-3">
+                  <Form.Label>Tipo de División</Form.Label>
+                  <Form.Control
+                    as="select"
+                    name="divisionType"
+                    value={values.divisionType}
+                    onChange={handleChange}
+                    isInvalid={touched.divisionType && errors.divisionType}
+                  >
+                    <option value="equitativo">Equitativo</option>
+                    <option value="porcentual">Porcentual</option>
+                  </Form.Control>
+                  <Form.Control.Feedback type="invalid">
+                    {errors.divisionType}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                {values.divisionType === 'porcentual' && (
+                  <FieldArray name="divisionMembers">
+                    {({ push, remove }) => (
+                      <div>
+                        {values.divisionMembers.map((member, index) => (
+                          <div key={index} className="mb-3">
+                            <Form.Group controlId={`divisionMembers[${index}].memberId`}>
+                              <Form.Label>Miembro</Form.Label>
+                              <Form.Control
+                                as="select"
+                                name={`divisionMembers[${index}].memberId`}
+                                value={member.memberId}
+                                onChange={handleChange}
+                                isInvalid={touched.divisionMembers?.[index]?.memberId && errors.divisionMembers?.[index]?.memberId}
+                              >
+                                <option value="">Seleccione un miembro</option>
+                                {members.map((m) => (
+                                  <option key={m._id} value={m._id}>
+                                    {m.name}
+                                  </option>
+                                ))}
+                              </Form.Control>
+                              <Form.Control.Feedback type="invalid">
+                                {errors.divisionMembers?.[index]?.memberId}
+                              </Form.Control.Feedback>
+                            </Form.Group>
+                            <Form.Group controlId={`divisionMembers[${index}].percentage`} className="mt-2">
+                              <Form.Label>Porcentaje</Form.Label>
+                              <Form.Control
+                                type="number"
+                                name={`divisionMembers[${index}].percentage`}
+                                value={member.percentage}
+                                onChange={handleChange}
+                                isInvalid={touched.divisionMembers?.[index]?.percentage && errors.divisionMembers?.[index]?.percentage}
+                              />
+                              <Form.Control.Feedback type="invalid">
+                                {errors.divisionMembers?.[index]?.percentage}
+                              </Form.Control.Feedback>
+                            </Form.Group>
+                            <Button variant="danger" onClick={() => remove(index)} className="mt-2">
+                              Eliminar Miembro
+                            </Button>
+                          </div>
+                        ))}
+                        <Button variant="secondary" onClick={() => push({ memberId: '', percentage: 0 })} className="mb-3">
+                          Añadir Miembro
+                        </Button>
+                      </div>
+                    )}
+                  </FieldArray>
+                )}
+
                 <FieldArray name="details">
                   {({ push, remove }) => (
                     <div>
@@ -88,7 +204,7 @@ const UploadTicket = ({ onUpload }) => {
                               {errors.details?.[index]?.product}
                             </Form.Control.Feedback>
                           </Form.Group>
-                          <Form.Group controlId={`details[${index}].amount`}>
+                          <Form.Group controlId={`details[${index}].amount`} className="mt-2">
                             <Form.Label>Monto</Form.Label>
                             <Form.Control
                               type="number"
@@ -103,12 +219,12 @@ const UploadTicket = ({ onUpload }) => {
                               {errors.details?.[index]?.amount}
                             </Form.Control.Feedback>
                           </Form.Group>
-                          <Button variant="danger" onClick={() => remove(index)} className="mb-2 mt-3">
+                          <Button variant="danger" onClick={() => remove(index)} className="mt-2">
                             Eliminar Producto
                           </Button>
                         </div>
                       ))}
-                      <Button variant="secondary" onClick={() => push({ product: '', amount: '' })} className='mb-2'>
+                      <Button variant="secondary" onClick={() => push({ product: '', amount: 0 })} className="mt-3">
                         Añadir Producto
                       </Button>
                     </div>
@@ -128,6 +244,7 @@ const UploadTicket = ({ onUpload }) => {
 
 UploadTicket.propTypes = {
   onUpload: PropTypes.func.isRequired,
+  members: PropTypes.array.isRequired,
 };
 
 export default UploadTicket;

@@ -1,9 +1,10 @@
-// src/components/Projects/TicketCard.js
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Card } from 'react-bootstrap';
+import { Card, Button } from 'react-bootstrap';
 
-function TicketCard({ ticket }) {
+function TicketCard({ ticket, onEdit, onDelete, members }) {
+  const payer = members.find((member) => member._id === ticket.paidBy)?.name || 'Desconocido';
+
   return (
     <Card className="mb-3">
       <Card.Body>
@@ -12,15 +13,24 @@ function TicketCard({ ticket }) {
           <strong>Fecha:</strong> {ticket.date}
         </Card.Text>
         <Card.Text>
+          <strong>Pagado por:</strong> {payer}
+        </Card.Text>
+        <Card.Text>
           <strong>Productos:</strong>
         </Card.Text>
         <ul>
-          {ticket.details.map((detail, index) => (
+          {ticket.products.map((product, index) => (
             <li key={index}>
-              {detail.product} - {detail.amount}
+              {product.product} - {product.amount}
             </li>
           ))}
         </ul>
+        <Button variant="secondary" onClick={() => onEdit(ticket)} className="mr-2">
+          Editar Ticket
+        </Button>
+        <Button variant="danger" onClick={() => onDelete(ticket._id)}>
+          Eliminar Ticket
+        </Button>
       </Card.Body>
     </Card>
   );
@@ -28,14 +38,19 @@ function TicketCard({ ticket }) {
 
 TicketCard.propTypes = {
   ticket: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
     date: PropTypes.string.isRequired,
-    details: PropTypes.arrayOf(
+    paidBy: PropTypes.string.isRequired,
+    products: PropTypes.arrayOf(
       PropTypes.shape({
         product: PropTypes.string.isRequired,
-        amount: PropTypes.string.isRequired,
+        amount: PropTypes.number.isRequired,
       })
     ).isRequired,
   }).isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  members: PropTypes.array.isRequired,
 };
 
 export default TicketCard;

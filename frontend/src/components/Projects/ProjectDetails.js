@@ -1,10 +1,9 @@
-// src/components/Projects/ProjectDetails.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, ListGroup, Modal, Form, Row, Col } from 'react-bootstrap';
-import { getProjectById, updateProject } from '../../api';
+import { Button, Modal, Form, Row, Col } from 'react-bootstrap';
+import { getProjectById, updateProject, updateTicketInProject, deleteTicketFromProject } from '../../api';
 import Sidebar from '../Dashboard/Sidebar';
-import { Formik } from 'formik';
+import { Formik, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import UploadTicket from './UploadTicket';
 import TicketCard from './TicketCard';
@@ -14,8 +13,8 @@ function ProjectDetails() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-  const [showMemberModal, setShowMemberModal] = useState(false);
-  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [showEditTicketModal, setShowEditTicketModal] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -33,50 +32,34 @@ function ProjectDetails() {
     fetchProject();
   }, [id]);
 
-  const handleAddMember = async (values, { resetForm }) => {
+  const handleEditTicket = (ticket) => {
+    setSelectedTicket(ticket);
+    setShowEditTicketModal(true);
+  };
+
+  const handleUpdateTicket = async (values) => {
     try {
-      const updatedProject = {
-        ...project,
-        members: [...(project.members || []), values.memberName],
+      const updatedTicketData = {
+        ...values,
       };
-      await updateProject(id, updatedProject);
-      setProject(updatedProject);
-      setShowMemberModal(false);
-      resetForm();
+      await updateTicketInProject(id, values._id, updatedTicketData);
+      const updatedTickets = project.tickets.map((ticket) =>
+        ticket._id === values._id ? { ...ticket, ...values } : ticket
+      );
+      setProject({ ...project, tickets: updatedTickets });
+      setShowEditTicketModal(false);
     } catch (error) {
-      console.error('Error adding member:', error);
+      console.error('Error updating ticket:', error);
     }
   };
 
-  const handleAddExpense = async (values, { resetForm }) => {
+  const handleDeleteTicket = async (ticketId) => {
     try {
-      const newExpense = {
-        description: values.description,
-        amount: values.amount,
-      };
-      const updatedProject = {
-        ...project,
-        expenses: [...(project.expenses || []), newExpense],
-      };
-      await updateProject(id, updatedProject);
-      setProject(updatedProject);
-      setShowExpenseModal(false);
-      resetForm();
+      await deleteTicketFromProject(id, ticketId);
+      const updatedTickets = project.tickets.filter((ticket) => ticket._id !== ticketId);
+      setProject({ ...project, tickets: updatedTickets });
     } catch (error) {
-      console.error('Error adding expense:', error);
-    }
-  };
-
-  const handleUploadTicket = async (ticketData) => {
-    try {
-      const updatedProject = {
-        ...project,
-        tickets: [...(project.tickets || []), ticketData],
-      };
-      await updateProject(id, updatedProject);
-      setProject(updatedProject);
-    } catch (error) {
-      console.error('Error uploading ticket:', error);
+      console.error('Error deleting ticket:', error);
     }
   };
 
@@ -96,12 +79,24 @@ function ProjectDetails() {
         <p>{project.detail || 'Sin descripción'}</p>
 
         <h4>Tickets</h4>
-        <UploadTicket onUpload={handleUploadTicket} />
+        <UploadTicket onUpload={(ticketData) => {
+          const updatedProject = {
+            ...project,
+            tickets: [...project.tickets, ticketData],
+          };
+          updateProject(id, updatedProject);
+          setProject(updatedProject);
+        }} />
         {project.tickets && project.tickets.length > 0 ? (
           <Row xs={1} md={3} className="g-4">
-            {project.tickets.map((ticket, index) => (
-              <Col key={index}>
-                <TicketCard ticket={ticket} />
+            {project.tickets.map((ticket) => (
+              <Col key={ticket._id}>
+                <TicketCard
+                  ticket={ticket}
+                  onEdit={() => handleEditTicket(ticket)}
+                  onDelete={() => handleDeleteTicket(ticket._id)}
+                  members={project.members}
+                />
               </Col>
             ))}
           </Row>
@@ -109,125 +104,118 @@ function ProjectDetails() {
           <p>No hay tickets cargados.</p>
         )}
 
-        <h4 className="mt-4">Miembros</h4>
-        <Button variant="primary" onClick={() => setShowMemberModal(true)} className="mb-3">
-          Añadir Miembro
-        </Button>
-        <ListGroup>
-          {project.members.length === 0 ? (
-            <p>No hay miembros en este proyecto.</p>
-          ) : (
-            project.members.map((member, index) => (
-              <ListGroup.Item key={index}>{member}</ListGroup.Item>
-            ))
-          )}
-        </ListGroup>
+        {/* Modal para editar un ticket */}
+        {selectedTicket && (
+          <Modal show={showEditTicketModal} onHide={() => setShowEditTicketModal(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Editar Ticket</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Formik
+                initialValues={{
+                  ...selectedTicket,
+                  products: selectedTicket.products || [{ product: '', amount: '' }],
+                  paidBy: selectedTicket.paidBy || '',
+                }}
+                validationSchema={Yup.object({
+                  date: Yup.string().required('La fecha es obligatoria'),
+                  paidBy: Yup.string().required('Debe seleccionar quién pagó el ticket'),
+                  products: Yup.array().of(
+                    Yup.object({
+                      product: Yup.string().required('El nombre del producto es obligatorio'),
+                      amount: Yup.number().required('El monto del producto es obligatorio'),
+                    })
+                  ),
+                })}
+                onSubmit={handleUpdateTicket}
+              >
+                {({ values, handleChange, handleSubmit, errors, touched }) => (
+                  <Form onSubmit={handleSubmit}>
+                    <Form.Group controlId="date">
+                      <Form.Label>Fecha del Ticket</Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="date"
+                        value={values.date}
+                        onChange={handleChange}
+                        isInvalid={touched.date && !!errors.date}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.date}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                    <Form.Group controlId="paidBy" className="mt-3">
+                      <Form.Label>Pagado por</Form.Label>
+                      <Form.Control
+                        as="select"
+                        name="paidBy"
+                        value={values.paidBy}
+                        onChange={handleChange}
+                        isInvalid={touched.paidBy && !!errors.paidBy}
+                      >
+                        <option value="">Seleccione un miembro</option>
+                        {project.members && project.members.map((member) => (
+                          <option key={member._id} value={member._id}>
+                            {member.name}
+                          </option>
+                        ))}
+                      </Form.Control>
+                      <Form.Control.Feedback type="invalid">
+                        {errors.paidBy}
+                      </Form.Control.Feedback>
+                    </Form.Group>
 
-        <h4 className="mt-4">Gastos</h4>
-        <Button variant="primary" onClick={() => setShowExpenseModal(true)} className="mb-3">
-          Añadir Gasto
-        </Button>
-        <ListGroup>
-          {project.expenses && project.expenses.length > 0 ? (
-            project.expenses.map((expense, index) => (
-              <ListGroup.Item key={index}>
-                {expense.description}: {expense.amount}
-              </ListGroup.Item>
-            ))
-          ) : (
-            <p>No hay gastos registrados.</p>
-          )}
-        </ListGroup>
-
-        {/* Modal para añadir miembro */}
-        <Modal show={showMemberModal} onHide={() => setShowMemberModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Añadir Miembro</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Formik
-              initialValues={{ memberName: '' }}
-              validationSchema={Yup.object({
-                memberName: Yup.string().required('El nombre del miembro es obligatorio'),
-              })}
-              onSubmit={handleAddMember}
-            >
-              {({ values, handleChange, handleSubmit, errors, touched }) => (
-                <Form onSubmit={handleSubmit}>
-                  <Form.Group controlId="memberName">
-                    <Form.Label>Nombre del Miembro</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="memberName"
-                      value={values.memberName}
-                      onChange={handleChange}
-                      isInvalid={touched.memberName && !!errors.memberName}
+                    <FieldArray
+                      name="products"
+                      render={(arrayHelpers) => (
+                        <div>
+                          {values.products.map((product, index) => (
+                            <div key={index} className="d-flex mb-2">
+                              <Form.Control
+                                type="text"
+                                name={`products[${index}].product`}
+                                value={product.product}
+                                onChange={handleChange}
+                                placeholder="Nombre del producto"
+                                isInvalid={touched.products?.[index]?.product && !!errors.products?.[index]?.product}
+                              />
+                              <Form.Control
+                                type="number"
+                                name={`products[${index}].amount`}
+                                value={product.amount}
+                                onChange={handleChange}
+                                placeholder="Monto del producto"
+                                className="ml-2"
+                                isInvalid={touched.products?.[index]?.amount && !!errors.products?.[index]?.amount}
+                              />
+                              <Button
+                                variant="danger"
+                                onClick={() => arrayHelpers.remove(index)}
+                                className="ml-2"
+                              >
+                                Eliminar
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            variant="secondary"
+                            onClick={() => arrayHelpers.push({ product: '', amount: '' })}
+                            className="mt-2"
+                          >
+                            Añadir Producto
+                          </Button>
+                        </div>
+                      )}
                     />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.memberName}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                  <Button variant="primary" type="submit" className="mt-3">
-                    Añadir
-                  </Button>
-                </Form>
-              )}
-            </Formik>
-          </Modal.Body>
-        </Modal>
-
-        {/* Modal para añadir gasto */}
-        <Modal show={showExpenseModal} onHide={() => setShowExpenseModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Añadir Gasto</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Formik
-              initialValues={{ description: '', amount: '' }}
-              validationSchema={Yup.object({
-                description: Yup.string().required('La descripción es obligatoria'),
-                amount: Yup.number()
-                  .required('El monto es obligatorio')
-                  .positive('El monto debe ser positivo'),
-              })}
-              onSubmit={handleAddExpense}
-            >
-              {({ values, handleChange, handleSubmit, errors, touched }) => (
-                <Form onSubmit={handleSubmit}>
-                  <Form.Group controlId="description">
-                    <Form.Label>Descripción</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="description"
-                      value={values.description}
-                      onChange={handleChange}
-                      isInvalid={touched.description && !!errors.description}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.description}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                  <Form.Group controlId="amount" className="mt-3">
-                    <Form.Label>Monto</Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="amount"
-                      value={values.amount}
-                      onChange={handleChange}
-                      isInvalid={touched.amount && !!errors.amount}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.amount}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                  <Button variant="primary" type="submit" className="mt-3">
-                    Añadir
-                  </Button>
-                </Form>
-              )}
-            </Formik>
-          </Modal.Body>
-        </Modal>
+                    <Button variant="primary" type="submit" className="mt-3">
+                      Guardar Cambios
+                    </Button>
+                  </Form>
+                )}
+              </Formik>
+            </Modal.Body>
+          </Modal>
+        )}
       </div>
     </div>
   );

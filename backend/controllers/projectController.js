@@ -1,4 +1,3 @@
-// controllers/projectController.js
 const Project = require('../models/Project');
 
 // Obtener todos los proyectos del usuario autenticado
@@ -14,17 +13,18 @@ exports.getAllProjects = async (req, res) => {
 // Crear un nuevo proyecto
 exports.createProject = async (req, res) => {
   const { name, detail, members, status } = req.body;
- 
+
   const existingProject = await Project.findOne({ name: name, userId: req.user.userId });
   if (existingProject) {
     return res.status(400).json({ message: 'Ya existe un proyecto con ese nombre' });
   }
-  
+
+  // Agregar al usuario autenticado como miembro del proyecto por defecto
   const project = new Project({
     userId: req.user.userId,
     name,
     detail,
-    members,
+    members: [{ name: req.user.username, userId: req.user.username, isTemporary: false }],
     totalExpense: 0,
     status,
   });
@@ -92,7 +92,7 @@ exports.deleteProject = async (req, res) => {
 // Añadir ticket a un proyecto existente
 exports.addTicketToProject = async (req, res) => {
   const { id } = req.params;
-  const { image, date, products } = req.body;
+  const { date, products, paidBy, divisionType, divisionMembers } = req.body;
 
   try {
     const project = await Project.findOne({ _id: id, userId: req.user.userId });
@@ -101,9 +101,11 @@ exports.addTicketToProject = async (req, res) => {
     }
 
     const newTicket = {
-      image,
       date,
       products,
+      paidBy,
+      divisionType,
+      divisionMembers,
     };
 
     project.tickets.push(newTicket);
@@ -111,14 +113,73 @@ exports.addTicketToProject = async (req, res) => {
 
     res.status(201).json({ message: 'Ticket añadido exitosamente', project });
   } catch (err) {
+    console.error('Error al añadir el ticket al proyecto:', err);
     res.status(500).json({ message: 'Error al añadir el ticket al proyecto' });
   }
 };
 
-// Añadir gasto a un proyecto existente
-exports.addExpenseToProject = async (req, res) => {
-  const { id } = req.params;
-  const { description, amount, members, divisionType, percentages } = req.body;
+// Modificar un ticket existente en un proyecto
+exports.updateTicketInProject = async (req, res) => {
+  const { projectId, ticketId } = req.params;
+  const { date, products, paidBy, divisionType, divisionMembers } = req.body;
+
+  try {
+    const project = await Project.findOne({ _id: projectId, userId: req.user.userId });
+    if (!project) {
+      return res.status(404).json({ message: 'Proyecto no encontrado' });
+    }
+
+    const ticket = project.tickets.id(ticketId);
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket no encontrado' });
+    }
+
+    // Actualizar los campos del ticket
+    if (date) ticket.date = date;
+    if (products) ticket.products = products;
+    if (paidBy) ticket.paidBy = paidBy;
+    if (divisionType) ticket.divisionType = divisionType;
+    if (divisionMembers) ticket.divisionMembers = divisionMembers;
+
+    await project.save();
+
+    res.status(200).json({ message: 'Ticket actualizado exitosamente', project });
+  } catch (err) {
+    console.error('Error al actualizar el ticket:', err);
+    res.status(500).json({ message: 'Error al actualizar el ticket' });
+  }
+};
+
+// Eliminar un ticket de un proyecto existente
+exports.deleteTicketFromProject = async (req, res) => {
+  const { projectId, ticketId } = req.params;
+
+  try {
+    const project = await Project.findOne({ _id: projectId, userId: req.user.userId });
+    if (!project) {
+      return res.status(404).json({ message: 'Proyecto no encontrado' });
+    }
+
+    // Utiliza el método pull para eliminar el ticket
+    const ticketToRemove = project.tickets.id(ticketId);
+    if (!ticketToRemove) {
+      return res.status(404).json({ message: 'Ticket no encontrado' });
+    }
+
+    project.tickets.pull(ticketId);
+    await project.save();
+
+    res.status(200).json({ message: 'Ticket eliminado exitosamente', project });
+  } catch (err) {
+    console.error('Error al eliminar el ticket:', err);
+    res.status(500).json({ message: 'Error al eliminar el ticket' });
+  }
+};
+
+// Añadir miembro al proyecto existente
+exports.addMemberToProject = async (req, res) => {
+  const { id } = req.params; // ID del proyecto
+  const { name, userId, isTemporary } = req.body; // Información del nuevo miembro
 
   try {
     const project = await Project.findOne({ _id: id, userId: req.user.userId });
@@ -126,20 +187,13 @@ exports.addExpenseToProject = async (req, res) => {
       return res.status(404).json({ message: 'Proyecto no encontrado' });
     }
 
-    const newExpense = {
-      description,
-      amount,
-      members,
-      divisionType,
-      percentages,
-    };
-
-    project.expenses.push(newExpense);
-    project.totalExpense += amount;
+    // Añadir miembro al proyecto
+    project.members.push({ name, userId, isTemporary });
     await project.save();
 
-    res.status(201).json({ message: 'Gasto añadido exitosamente', project });
+    res.status(201).json({ message: 'Miembro añadido exitosamente', project });
   } catch (err) {
-    res.status(500).json({ message: 'Error al añadir el gasto al proyecto' });
+    console.error('Error al añadir miembro al proyecto:', err);
+    res.status(500).json({ message: 'Error al añadir miembro al proyecto' });
   }
 };
