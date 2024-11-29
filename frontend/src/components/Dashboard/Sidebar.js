@@ -2,7 +2,7 @@ import React from 'react';
 import { ListGroup } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 
-const Sidebar = ({ onAddProject, setActiveSection }) => {
+const Sidebar = ({ setActiveSection }) => {
   return (
     <div className="bg-light vh-100 d-flex flex-column justify-content-between">
       <div>
@@ -16,7 +16,7 @@ const Sidebar = ({ onAddProject, setActiveSection }) => {
               Amigos
             </ListGroup.Item>
             <ListGroup.Item action onClick={() => setActiveSection('history')}>
-              Historial y Reportes
+              Historial
             </ListGroup.Item>
           </ListGroup>
         </div>
@@ -26,7 +26,6 @@ const Sidebar = ({ onAddProject, setActiveSection }) => {
 };
 
 Sidebar.propTypes = {
-  onAddProject: PropTypes.func.isRequired,
   setActiveSection: PropTypes.func.isRequired,
 };
 

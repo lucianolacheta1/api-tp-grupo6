@@ -1,21 +1,18 @@
 const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   name: {
     type: String,
     required: true,
   },
   detail: {
     type: String,
-    required: true,
-  },
-  ticket: {
-    type: String,
-    required: true,
-  },
-  expenses: {
-    type: [Number],
-    required: true,
+    required: false,
   },
   members: {
     type: [String],
@@ -33,6 +30,22 @@ const projectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  tickets: [
+    {
+      image: String,
+      date: String,
+      products: [{ product: String, amount: Number }],
+    },
+  ],
+  expenses: [
+    {
+      description: String,
+      amount: Number,
+      members: [String],
+      divisionType: String,
+      percentages: [Number],
+    },
+  ],
 });
 
 module.exports = mongoose.model('Project', projectSchema);

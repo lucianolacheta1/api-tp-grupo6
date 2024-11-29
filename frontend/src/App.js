@@ -7,10 +7,9 @@ import Dashboard from './components/Dashboard/Dashboard';
 import ProfilePage from './components/ProfilePage/ProfilePage';
 import PrivateRoute from './components/Common/PrivateRoute';
 import LoginModal from './components/Auth/LoginModal';
-import ProjectsList from './components/Projects/ProjectsList';
+import ProjectManager from './components/Projects/ProjectManager';
+import ProjectDetails from './components/Projects/ProjectDetails';
 import { AuthProvider } from './components/Auth/AuthContext';
-
-
 
 function App() {
   // Estado para manejar el modal de inicio de sesión
@@ -32,7 +31,7 @@ function App() {
               path="/"
               element={<LandingPage openLoginModal={openLoginModal} />}
             />
-            {/* Rutas públicas adicionales */}
+            {/* Ruta privada para Dashboard */}
             <Route
               path="/dashboard"
               element={
@@ -41,6 +40,7 @@ function App() {
                 </PrivateRoute>
               }
             />
+            {/* Ruta privada para el perfil del usuario */}
             <Route
               path="/profile"
               element={
@@ -49,11 +49,21 @@ function App() {
                 </PrivateRoute>
               }
             />
+            {/* Ruta privada para la lista de proyectos */}
             <Route
-              path="/"
+              path="/projects"
               element={
                 <PrivateRoute>
-                  <ProjectsList />
+                  <ProjectManager />
+                </PrivateRoute>
+              }
+            />
+            {/* Ruta privada para los detalles de un proyecto */}
+            <Route
+              path="/projects/:id"
+              element={
+                <PrivateRoute>
+                  <ProjectDetails />
                 </PrivateRoute>
               }
             />

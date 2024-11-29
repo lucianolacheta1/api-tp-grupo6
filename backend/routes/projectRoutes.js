@@ -1,8 +1,16 @@
 // routes/projectRoutes.js
-const express = require('express');
-const { getAllProjects, createProject, getProjectById, updateProject, deleteProject } = require('../controllers/projectController');
-const { authenticateToken } = require('../middleware/authMiddleware');
 
+const express = require('express');
+const {
+  getAllProjects,
+  createProject,
+  getProjectById,
+  updateProject,
+  deleteProject,
+  addTicketToProject,
+  addExpenseToProject
+} = require('../controllers/projectController');
+const { authenticateToken } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -20,5 +28,11 @@ router.patch('/:id', authenticateToken, updateProject);
 
 // Ruta para eliminar un proyecto por ID
 router.delete('/:id', authenticateToken, deleteProject);
+
+// Ruta para añadir un ticket a un proyecto
+router.post('/:id/tickets', authenticateToken, addTicketToProject);
+
+// Ruta para añadir un gasto a un proyecto
+router.post('/:id/expenses', authenticateToken, addExpenseToProject);
 
 module.exports = router;

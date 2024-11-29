@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { AuthContext } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -10,14 +10,8 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000/api/auth';
 
 function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
-  const { login, authenticatedUser } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (authenticatedUser) {
-      navigate('/dashboard');
-    }
-  }, [authenticatedUser, navigate]);
 
   const handleClose = () => {
     setShowModal(false);
@@ -65,6 +59,7 @@ function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
         });
         await login(response.data.token); // Este debería guardar el token y actualizar el contexto
         handleClose();
+        navigate('/dashboard'); // Redirigir a dashboard después de iniciar sesión
       } else if (modalView === 'register') {
         // Lógica de registro
         await axios.post(`${API_URL}/register`, {
@@ -90,9 +85,9 @@ function LoginModal({ showModal, setShowModal, modalView, setModalView }) {
       resetForm();
     }
   };
-  
+
   return (
-    <Modal show={showModal} onHide={handleClose}>
+    <Modal show={showModal} onHide={handleClose} backdrop="static" keyboard={false}>
       <Modal.Header closeButton>
         <Modal.Title>
           {modalView === 'login'

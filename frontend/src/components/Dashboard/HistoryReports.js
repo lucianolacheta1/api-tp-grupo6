@@ -1,62 +1,38 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Table } from 'react-bootstrap';
+import { Card } from 'react-bootstrap';
 
-const HistoryReports = ({ tickets, expenses }) => {
+const HistoryReports = ({ expenses }) => {
+  if (!expenses || expenses.length === 0) {
+    return <p>No hay registros disponibles para mostrar.</p>;
+  }
+
   return (
     <div>
-      <h3>Historial y Reportes</h3>
-      
-      <h4>Tickets</h4>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Producto</th>
-            <th>Monto</th>
-            <th>Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tickets.map(ticket => (
-            <tr key={ticket.id}>
-              <td>{ticket.id}</td>
-              <td>{ticket.description}</td>
-              <td>{ticket.amount}</td>
-              <td>{ticket.date}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-
-      <h4>Gastos</h4>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Descripción</th>
-            <th>Monto</th>
-            <th>Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
-          {expenses.map(expense => (
-            <tr key={expense.id}>
-              <td>{expense.id}</td>
-              <td>{expense.description}</td>
-              <td>{expense.amount}</td>
-              <td>{expense.date}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <h4>Historial de Gastos</h4>
+      {expenses.map((expense, index) => (
+        <Card key={index} className="mb-3 shadow-sm">
+          <Card.Body>
+            <Card.Title>{expense.description}</Card.Title>
+            <Card.Text>
+              <strong>Monto:</strong> {expense.amount} <br />
+              <strong>Fecha:</strong> {expense.date}
+            </Card.Text>
+          </Card.Body>
+        </Card>
+      ))}
     </div>
   );
 };
 
 HistoryReports.propTypes = {
-  tickets: PropTypes.array.isRequired,
-  expenses: PropTypes.array.isRequired,
+  expenses: PropTypes.arrayOf(
+    PropTypes.shape({
+      description: PropTypes.string.isRequired,
+      amount: PropTypes.number.isRequired,
+      date: PropTypes.string.isRequired,
+    })
+  ),
 };
 
 export default HistoryReports;

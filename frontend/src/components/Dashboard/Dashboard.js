@@ -1,11 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import Sidebar from './Sidebar';
-import ProjectManager from './ProjectManager';
-import ProjectDetails from './ProjectDetails';
+import ProjectManager from '../Projects/ProjectManager';
+import ProjectDetails from '../Projects/ProjectDetails';
 import FriendsManager from './FriendsManager';
 import ExpensesManager from './ExpensesManager';
 import HistoryReports from './HistoryReports';
+import { getFriends } from '../../api';
 
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState('projects');
@@ -14,66 +15,38 @@ const Dashboard = () => {
   const [expenses, setExpenses] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const handleAddProject = useCallback(() => {
-    setActiveSection('projects');
-  }, []);
+  useEffect(() => {
+    if (activeSection === 'friends') {
+      // Cargar amigos desde el backend cuando se selecciona la sección de amigos
+      const fetchFriends = async () => {
+        try {
+          const friendsData = await getFriends();
+          setFriends(friendsData);
+        } catch (error) {
+          console.error('Error al obtener amigos:', error);
+        }
+      };
+      fetchFriends();
+    }
+  }, [activeSection]);
 
-  const handleSelectProject = useCallback(
-    (projectId) => {
-      const project = projects.find((proj) => proj.id === projectId);
-      setSelectedProject(project);
-      setActiveSection('projectDetails');
-    },
-    [projects]
-  );
+  const handleSelectProject = (projectId) => {
+    const project = projects.find((proj) => proj.id === projectId);
+    setSelectedProject(project);
+    setActiveSection('projectDetails');
+  };
 
-  const handleUploadTicketData = useCallback(
-    (ticketData) => {
-      if (selectedProject) {
-        const updatedProjects = projects.map((project) =>
-          project.id === selectedProject.id
-            ? { ...project, tickets: [...(project.tickets || []), ticketData] }
-            : project
-        );
-        setProjects(updatedProjects);
-        setSelectedProject((prevSelectedProject) => ({
-          ...prevSelectedProject,
-          tickets: [...(prevSelectedProject.tickets || []), ticketData],
-        }));
-      }
-    },
-    [selectedProject, projects]
-  );
-
-  const handleDeleteProject = useCallback(
-    (projectId) => {
-      const updatedProjects = projects.filter((project) => project.id !== projectId);
-      setProjects(updatedProjects);
-      if (selectedProject && selectedProject.id === projectId) {
-        setSelectedProject(null);
-        setActiveSection('projects');
-      }
-    },
-    [projects, selectedProject]
-  );
-
-  const handleBackToProjects = useCallback(() => {
+  const handleBackToProjects = () => {
     setSelectedProject(null);
     setActiveSection('projects');
-  }, []);
-
-  // Consolidar todos los tickets de todos los proyectos
-  const allTickets = projects.flatMap((project) => project.tickets || []);
+  };
 
   return (
     <Container fluid className="mt-4">
       <Row>
         {/* Menú lateral izquierdo */}
         <Col xs={12} md={3} lg={2} className="px-0">
-          <Sidebar
-            onAddProject={handleAddProject}
-            setActiveSection={setActiveSection}
-          />
+          <Sidebar setActiveSection={setActiveSection} />
         </Col>
 
         {/* Contenido principal */}
@@ -83,7 +56,6 @@ const Dashboard = () => {
               projects={projects}
               setProjects={setProjects}
               onSelectProject={handleSelectProject}
-              onDeleteProject={handleDeleteProject}
             />
           )}
 
@@ -100,8 +72,6 @@ const Dashboard = () => {
               }}
               friends={friends}
               setFriends={setFriends}
-              onUploadTicketData={handleUploadTicketData}
-              tickets={selectedProject.tickets || []}
             />
           )}
           {activeSection === 'expenses' && (
@@ -111,7 +81,7 @@ const Dashboard = () => {
             <FriendsManager friends={friends} setFriends={setFriends} />
           )}
           {activeSection === 'history' && (
-            <HistoryReports tickets={allTickets} expenses={expenses} />
+            <HistoryReports expenses={expenses} />
           )}
         </Col>
       </Row>

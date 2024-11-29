@@ -1,27 +1,28 @@
-const express = require('express');
-const mongoose = require('mongoose');
+// server.js
+const express = require('express'); // Asegúrate de importar express
 const dotenv = require('dotenv');
-const cors = require('cors');
+const connectDB = require('./config/db'); // Importa el archivo de conexión a la BD
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
+const friendRoutes = require('./routes/friendRoutes'); // Añadir rutas de amigos
+const { configureCors } = require('./middleware/authMiddleware');
 
 dotenv.config();
 
-const app = express();
+const app = express(); // Uso de express después de importarlo
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Conectar a la base de datos
+connectDB();
 
-// Conexión a la base de datos
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('Could not connect to MongoDB...', err));
+// Middleware
+configureCors(app);
+app.use(express.json());
 
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/friends', friendRoutes); // Añadir rutas de amigos
 
 // Ruta principal
 app.get('/', (req, res) => {

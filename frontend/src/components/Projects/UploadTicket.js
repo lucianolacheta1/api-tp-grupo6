@@ -6,25 +6,16 @@ import * as Yup from 'yup';
 import PropTypes from 'prop-types';
 
 const UploadTicket = ({ onUpload }) => {
-  const [file, setFile] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
   const handleUpload = (values, { resetForm }) => {
-    if (file) {
-      const ticketData = {
-        file,
-        details: values.details,
-        date: values.date,
-      };
-      onUpload(ticketData);
-      setFile(null);
-      resetForm();
-      setShowModal(false);
-    }
+    const ticketData = {
+      details: values.details,
+      date: values.date,
+    };
+    onUpload(ticketData);
+    resetForm();
+    setShowModal(false);
   };
 
   const validationSchema = Yup.object().shape({
@@ -63,14 +54,6 @@ const UploadTicket = ({ onUpload }) => {
               isSubmitting,
             }) => (
               <Form noValidate onSubmit={handleSubmit}>
-                <Form.Group>
-                  <Form.Label>Subir Imagen del Ticket</Form.Label>
-                  <Form.Control
-                    type="file"
-                    id="upload-ticket-file"
-                    onChange={handleFileChange}
-                  />
-                </Form.Group>
                 <Form.Group controlId="date">
                   <Form.Label>Fecha del Ticket</Form.Label>
                   <Form.Control

@@ -20,13 +20,22 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
+
 // Configuración CORS
 const configureCors = (app) => {
+  const allowedOrigins = ['http://localhost:3000']; // Lista de orígenes permitidos
   app.use(cors({
-    origin: 'http://localhost:3000', // Asegúrate de cambiar esta URL si se usa otra
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   }));
 };
+
 
 // Exportar cada módulo por separado
 module.exports.authenticateToken = authenticateToken;
