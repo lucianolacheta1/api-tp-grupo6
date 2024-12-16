@@ -12,24 +12,28 @@ exports.getAllProjects = async (req, res) => {
 
 // Crear un nuevo proyecto
 exports.createProject = async (req, res) => {
-  const { name, detail, members, status } = req.body;
-
-  const existingProject = await Project.findOne({ name: name, userId: req.user.userId });
-  if (existingProject) {
-    return res.status(400).json({ message: 'Ya existe un proyecto con ese nombre' });
-  }
-
-  // Agregar al usuario autenticado como miembro del proyecto por defecto
-  const project = new Project({
-    userId: req.user.userId,
-    name,
-    detail,
-    members: [{ name: req.user.username, userId: req.user.username, isTemporary: false }],
-    totalExpense: 0,
-    status,
-  });
+  const { name, detail, status, members } = req.body;
 
   try {
+    const existingProject = await Project.findOne({ name: name, userId: req.user.userId });
+    if (existingProject) {
+      return res.status(400).json({ message: 'Ya existe un proyecto con ese nombre' });
+    }
+
+    // Verificar que se haya enviado al menos un miembro
+    if (!members || !Array.isArray(members) || members.length === 0 || !members[0].name) {
+      return res.status(400).json({ message: 'Debes proporcionar al menos un miembro con nombre.' });
+    }
+
+    const project = new Project({
+      userId: req.user.userId,
+      name,
+      detail,
+      members,
+      totalExpense: 0,
+      status: status || 'En progreso',
+    });
+
     const newProject = await project.save();
     console.log('Proyecto guardado exitosamente en la base de datos:', newProject);
     res.status(201).json(newProject);
@@ -160,7 +164,6 @@ exports.deleteTicketFromProject = async (req, res) => {
       return res.status(404).json({ message: 'Proyecto no encontrado' });
     }
 
-    // Utiliza el método pull para eliminar el ticket
     const ticketToRemove = project.tickets.id(ticketId);
     if (!ticketToRemove) {
       return res.status(404).json({ message: 'Ticket no encontrado' });

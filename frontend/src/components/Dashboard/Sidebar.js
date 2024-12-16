@@ -25,6 +25,7 @@ const Sidebar = ({ setActiveSection }) => {
   );
 };
 
+
 Sidebar.propTypes = {
   setActiveSection: PropTypes.func.isRequired,
 };

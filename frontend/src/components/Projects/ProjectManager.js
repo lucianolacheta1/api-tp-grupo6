@@ -1,14 +1,14 @@
-// src/components/Projects/ProjectManager.js
 import React, { useState, useCallback, useEffect } from 'react';
-import { Button, Modal, Form, ListGroup, Card } from 'react-bootstrap';
+import { Button, Modal, Form, ListGroup, Card, Row, Col } from 'react-bootstrap';
 import PropTypes from 'prop-types';
-import { Formik } from 'formik';
+import { Formik, FieldArray } from 'formik';
 import * as Yup from 'yup';
-import { createProject, getProjects, deleteProject } from '../../api';
+import { createProject, getProjects, deleteProject, getFriends } from '../../api';
 import { useNavigate } from 'react-router-dom';
 
 function ProjectManager({ onSelectProject }) {
   const [projects, setProjects] = useState([]);
+  const [friends, setFriends] = useState([]); // Para almacenar la lista de amigos
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -31,6 +31,19 @@ function ProjectManager({ onSelectProject }) {
     fetchProjects();
   }, []);
 
+  // Obtener amigos del usuario autenticado
+  useEffect(() => {
+    const fetchFriends = async () => {
+      try {
+        const data = await getFriends();
+        setFriends(data);
+      } catch (error) {
+        console.error('Error fetching friends:', error);
+      }
+    };
+    fetchFriends();
+  }, []);
+
   const handleCreateProject = useCallback(
     async (values, { resetForm }) => {
       const projectExists = projects.some(
@@ -42,12 +55,31 @@ function ProjectManager({ onSelectProject }) {
         return;
       }
 
+      // Crear array de miembros a partir del FieldArray
+      const members = values.members.map((m) => {
+        if (m.friendId && m.friendId !== '') {
+          // Seleccionó un amigo existente
+          const friendSelected = friends.find((f) => f._id === m.friendId);
+          return {
+            name: friendSelected.name,
+            userId: friendSelected.userId || null,
+            isTemporary: false,
+          };
+        } else {
+          // Miembro temporal ingresado manualmente
+          return {
+            name: m.name,
+            userId: null,
+            isTemporary: true,
+          };
+        }
+      });
+
       const newProject = {
         name: values.projectName,
         detail: values.projectDescription || 'Sin descripción',
-        members: [],
-        totalExpense: 0,
         status: 'En progreso',
+        members,
       };
 
       try {
@@ -65,7 +97,7 @@ function ProjectManager({ onSelectProject }) {
         setLoading(false);
       }
     },
-    [projects, navigate]
+    [projects, navigate, friends]
   );
 
   const handleDeleteProject = async (projectId) => {
@@ -88,6 +120,18 @@ function ProjectManager({ onSelectProject }) {
   const validationSchema = Yup.object().shape({
     projectName: Yup.string().required('El nombre del proyecto es obligatorio'),
     projectDescription: Yup.string().notRequired(),
+    members: Yup.array().of(
+      Yup.object().shape({
+        friendId: Yup.string().notRequired(),
+        // Cambio realizado aquí: uso de la función callback en `when`
+        name: Yup.string().when('friendId', (friendId, schema) => {
+          if (!friendId || friendId === '') {
+            return schema.required('Debes ingresar un nombre si no seleccionas un amigo');
+          }
+          return schema;
+        }),
+      })
+    ).min(1, 'Debes agregar al menos un miembro'),
   });
 
   return (
@@ -146,19 +190,11 @@ function ProjectManager({ onSelectProject }) {
         </Modal.Header>
         <Modal.Body>
           <Formik
-            initialValues={{ projectName: '', projectDescription: '' }}
+            initialValues={{ projectName: '', projectDescription: '', members: [{ name: '', friendId: '' }] }}
             validationSchema={validationSchema}
             onSubmit={handleCreateProject}
           >
-            {({
-              values,
-              errors,
-              touched,
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              isSubmitting,
-            }) => (
+            {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting }) => (
               <Form noValidate onSubmit={handleSubmit}>
                 <Form.Group controlId="projectName">
                   <Form.Label>Nombre del Proyecto</Form.Label>
@@ -169,13 +205,14 @@ function ProjectManager({ onSelectProject }) {
                     value={values.projectName}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    isInvalid={touched.projectName && errors.projectName}
+                    isInvalid={touched.projectName && !!errors.projectName}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.projectName}
                   </Form.Control.Feedback>
                 </Form.Group>
-                <Form.Group controlId="projectDescription">
+
+                <Form.Group controlId="projectDescription" className="mt-3">
                   <Form.Label>Descripción</Form.Label>
                   <Form.Control
                     as="textarea"
@@ -187,6 +224,68 @@ function ProjectManager({ onSelectProject }) {
                     onBlur={handleBlur}
                   />
                 </Form.Group>
+
+                <Form.Label className="mt-3">Miembros del Proyecto</Form.Label>
+                <FieldArray name="members">
+                  {({ push, remove }) => (
+                    <div>
+                      {values.members.map((member, index) => {
+                        const memberNameError = errors.members && errors.members[index] && errors.members[index].name;
+                        return (
+                          <div key={index} className="mb-3 p-2 border rounded">
+                            <Row>
+                              <Col>
+                                <Form.Group>
+                                  <Form.Label>Seleccionar Amigo (opcional)</Form.Label>
+                                  <Form.Control
+                                    as="select"
+                                    name={`members[${index}].friendId`}
+                                    value={member.friendId}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                  >
+                                    <option value="">-- Ningún amigo seleccionado --</option>
+                                    {friends.map((f) => (
+                                      <option key={f._id} value={f._id}>
+                                        {f.name} ({f.email})
+                                      </option>
+                                    ))}
+                                  </Form.Control>
+                                </Form.Group>
+                              </Col>
+                              <Col>
+                                <Form.Group>
+                                  <Form.Label>Nombre del Miembro (si no se selecciona amigo)</Form.Label>
+                                  <Form.Control
+                                    type="text"
+                                    name={`members[${index}].name`}
+                                    placeholder="Ingresa el nombre del miembro"
+                                    value={member.name}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    isInvalid={touched.members && touched.members[index] && !!memberNameError}
+                                  />
+                                  <Form.Control.Feedback type="invalid">
+                                    {memberNameError}
+                                  </Form.Control.Feedback>
+                                </Form.Group>
+                              </Col>
+                            </Row>
+                            {values.members.length > 1 && (
+                              <Button variant="danger" size="sm" onClick={() => remove(index)}>
+                                Eliminar Miembro
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                      <Button variant="secondary" size="sm" onClick={() => push({ name: '', friendId: '' })}>
+                        Añadir otro miembro
+                      </Button>
+                    </div>
+                  )}
+                </FieldArray>
+
                 <Button variant="primary" type="submit" disabled={isSubmitting} className="mt-3">
                   {isSubmitting ? 'Creando...' : 'Crear'}
                 </Button>

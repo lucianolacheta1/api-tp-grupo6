@@ -1,4 +1,3 @@
-// src/components/Dashboard/UploadTicket.js
 import React, { useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 import { Formik, FieldArray } from 'formik';
@@ -27,22 +26,26 @@ const UploadTicket = ({ onUpload, members }) => {
     divisionType: Yup.string().required('Debe seleccionar un tipo de división'),
     divisionMembers: Yup.array().when('divisionType', {
       is: 'porcentual',
-      then: Yup.array().of(
-        Yup.object().shape({
-          memberId: Yup.string().required('Debe seleccionar un miembro'),
-          percentage: Yup.number()
-            .required('Debe ingresar un porcentaje')
-            .min(0, 'El porcentaje no puede ser menor a 0')
-            .max(100, 'El porcentaje no puede ser mayor a 100'),
-        })
-      ).test('sum-100', 'La suma de los porcentajes debe ser 100', (divisionMembers) =>
-        divisionMembers.reduce((total, member) => total + (member.percentage || 0), 0) === 100
-      ),
+      then: Yup.array()
+        .of(
+          Yup.object().shape({
+            memberId: Yup.string().required('Debe seleccionar un miembro'),
+            percentage: Yup.number()
+              .required('Debe ingresar un porcentaje')
+              .min(0, 'El porcentaje no puede ser menor a 0')
+              .max(100, 'El porcentaje no puede ser mayor a 100'),
+          })
+        )
+        .test('sum-100', 'La suma de los porcentajes debe ser 100', (divisionMembers) =>
+          divisionMembers.reduce((total, member) => total + (member.percentage || 0), 0) === 100
+        ),
     }),
     details: Yup.array().of(
       Yup.object().shape({
         product: Yup.string().required('El nombre del producto es obligatorio'),
-        amount: Yup.number().required('El monto es obligatorio').positive('El monto debe ser positivo'),
+        amount: Yup.number()
+          .required('El monto es obligatorio')
+          .positive('El monto debe ser positivo'),
       })
     ),
   });
@@ -87,7 +90,7 @@ const UploadTicket = ({ onUpload, members }) => {
                     value={values.date}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    isInvalid={touched.date && errors.date}
+                    isInvalid={touched.date && !!errors.date}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.date}
@@ -101,14 +104,18 @@ const UploadTicket = ({ onUpload, members }) => {
                     name="paidBy"
                     value={values.paidBy}
                     onChange={handleChange}
-                    isInvalid={touched.paidBy && errors.paidBy}
+                    isInvalid={touched.paidBy && !!errors.paidBy}
                   >
                     <option value="">Seleccione un miembro</option>
-                    {members.map((member) => (
-                      <option key={member._id} value={member._id}>
-                        {member.name}
-                      </option>
-                    ))}
+                    {members && members.length > 0 ? (
+                      members.map((member) => (
+                        <option key={member.userId} value={member.userId}>
+                          {member.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No hay miembros disponibles</option>
+                    )}
                   </Form.Control>
                   <Form.Control.Feedback type="invalid">
                     {errors.paidBy}
@@ -122,7 +129,7 @@ const UploadTicket = ({ onUpload, members }) => {
                     name="divisionType"
                     value={values.divisionType}
                     onChange={handleChange}
-                    isInvalid={touched.divisionType && errors.divisionType}
+                    isInvalid={touched.divisionType && !!errors.divisionType}
                   >
                     <option value="equitativo">Equitativo</option>
                     <option value="porcentual">Porcentual</option>
@@ -145,11 +152,14 @@ const UploadTicket = ({ onUpload, members }) => {
                                 name={`divisionMembers[${index}].memberId`}
                                 value={member.memberId}
                                 onChange={handleChange}
-                                isInvalid={touched.divisionMembers?.[index]?.memberId && errors.divisionMembers?.[index]?.memberId}
+                                isInvalid={
+                                  touched.divisionMembers?.[index]?.memberId &&
+                                  !!errors.divisionMembers?.[index]?.memberId
+                                }
                               >
                                 <option value="">Seleccione un miembro</option>
                                 {members.map((m) => (
-                                  <option key={m._id} value={m._id}>
+                                  <option key={m.userId} value={m.userId}>
                                     {m.name}
                                   </option>
                                 ))}
@@ -165,7 +175,10 @@ const UploadTicket = ({ onUpload, members }) => {
                                 name={`divisionMembers[${index}].percentage`}
                                 value={member.percentage}
                                 onChange={handleChange}
-                                isInvalid={touched.divisionMembers?.[index]?.percentage && errors.divisionMembers?.[index]?.percentage}
+                                isInvalid={
+                                  touched.divisionMembers?.[index]?.percentage &&
+                                  !!errors.divisionMembers?.[index]?.percentage
+                                }
                               />
                               <Form.Control.Feedback type="invalid">
                                 {errors.divisionMembers?.[index]?.percentage}
@@ -176,7 +189,11 @@ const UploadTicket = ({ onUpload, members }) => {
                             </Button>
                           </div>
                         ))}
-                        <Button variant="secondary" onClick={() => push({ memberId: '', percentage: 0 })} className="mb-3">
+                        <Button
+                          variant="secondary"
+                          onClick={() => push({ memberId: '', percentage: 0 })}
+                          className="mb-3"
+                        >
                           Añadir Miembro
                         </Button>
                       </div>
@@ -198,7 +215,7 @@ const UploadTicket = ({ onUpload, members }) => {
                               value={detail.product}
                               onChange={handleChange}
                               onBlur={handleBlur}
-                              isInvalid={touched.details?.[index]?.product && errors.details?.[index]?.product}
+                              isInvalid={touched.details?.[index]?.product && !!errors.details?.[index]?.product}
                             />
                             <Form.Control.Feedback type="invalid">
                               {errors.details?.[index]?.product}
@@ -213,7 +230,7 @@ const UploadTicket = ({ onUpload, members }) => {
                               value={detail.amount}
                               onChange={handleChange}
                               onBlur={handleBlur}
-                              isInvalid={touched.details?.[index]?.amount && errors.details?.[index]?.amount}
+                              isInvalid={touched.details?.[index]?.amount && !!errors.details?.[index]?.amount}
                             />
                             <Form.Control.Feedback type="invalid">
                               {errors.details?.[index]?.amount}

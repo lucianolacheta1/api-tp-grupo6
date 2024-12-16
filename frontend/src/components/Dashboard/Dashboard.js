@@ -72,8 +72,10 @@ const Dashboard = () => {
               }}
               friends={friends}
               setFriends={setFriends}
+              setActiveSection={setActiveSection} // Asegúrate de pasar esta prop
             />
           )}
+
           {activeSection === 'expenses' && (
             <ExpensesManager expenses={expenses} setExpenses={setExpenses} />
           )}

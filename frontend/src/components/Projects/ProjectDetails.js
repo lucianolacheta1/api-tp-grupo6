@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button, Modal, Form, Row, Col } from 'react-bootstrap';
-import { getProjectById, updateProject, updateTicketInProject, deleteTicketFromProject } from '../../api';
+import { getProjectById, updateTicketInProject, deleteTicketFromProject, addTicketToProject } from '../../api';
 import Sidebar from '../Dashboard/Sidebar';
 import { Formik, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import UploadTicket from './UploadTicket';
 import TicketCard from './TicketCard';
 
-function ProjectDetails() {
+function ProjectDetails({ setActiveSection }) {
   const { id } = useParams();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,10 +17,15 @@ function ProjectDetails() {
   const [selectedTicket, setSelectedTicket] = useState(null);
 
   useEffect(() => {
+    setActiveSection('projectDetails');
     const fetchProject = async () => {
       try {
         const data = await getProjectById(id);
-        setProject(data);
+        if (data.members) {
+          setProject(data);
+        } else {
+          setProject({ ...data, members: [] });
+        }
       } catch (error) {
         console.error('Error fetching project details:', error);
         setErrorMessage('Failed to load project details. Please try again later.');
@@ -28,9 +33,8 @@ function ProjectDetails() {
         setLoading(false);
       }
     };
-
     fetchProject();
-  }, [id]);
+  }, [id, setActiveSection]);
 
   const handleEditTicket = (ticket) => {
     setSelectedTicket(ticket);
@@ -39,14 +43,10 @@ function ProjectDetails() {
 
   const handleUpdateTicket = async (values) => {
     try {
-      const updatedTicketData = {
-        ...values,
-      };
-      await updateTicketInProject(id, values._id, updatedTicketData);
-      const updatedTickets = project.tickets.map((ticket) =>
-        ticket._id === values._id ? { ...ticket, ...values } : ticket
-      );
-      setProject({ ...project, tickets: updatedTickets });
+      const updatedTicketData = { ...values };
+      const response = await updateTicketInProject(id, values._id, updatedTicketData);
+      // Actualizar state local con la respuesta del servidor
+      setProject(response.project);
       setShowEditTicketModal(false);
     } catch (error) {
       console.error('Error updating ticket:', error);
@@ -55,11 +55,20 @@ function ProjectDetails() {
 
   const handleDeleteTicket = async (ticketId) => {
     try {
-      await deleteTicketFromProject(id, ticketId);
-      const updatedTickets = project.tickets.filter((ticket) => ticket._id !== ticketId);
-      setProject({ ...project, tickets: updatedTickets });
+      const response = await deleteTicketFromProject(id, ticketId);
+      setProject(response.project);
     } catch (error) {
       console.error('Error deleting ticket:', error);
+    }
+  };
+
+  const handleUploadTicket = async (ticketData) => {
+    try {
+      const response = await addTicketToProject(id, ticketData);
+      // Actualizar el proyecto con la respuesta del servidor
+      setProject(response.project);
+    } catch (error) {
+      console.error('Error adding ticket:', error);
     }
   };
 
@@ -79,14 +88,8 @@ function ProjectDetails() {
         <p>{project.detail || 'Sin descripción'}</p>
 
         <h4>Tickets</h4>
-        <UploadTicket onUpload={(ticketData) => {
-          const updatedProject = {
-            ...project,
-            tickets: [...project.tickets, ticketData],
-          };
-          updateProject(id, updatedProject);
-          setProject(updatedProject);
-        }} />
+        {/* Pasar los miembros al componente UploadTicket */}
+        <UploadTicket onUpload={handleUploadTicket} members={project.members || []} />
         {project.tickets && project.tickets.length > 0 ? (
           <Row xs={1} md={3} className="g-4">
             {project.tickets.map((ticket) => (
@@ -95,7 +98,7 @@ function ProjectDetails() {
                   ticket={ticket}
                   onEdit={() => handleEditTicket(ticket)}
                   onDelete={() => handleDeleteTicket(ticket._id)}
-                  members={project.members}
+                  members={project.members || []}
                 />
               </Col>
             ))}
@@ -154,11 +157,15 @@ function ProjectDetails() {
                         isInvalid={touched.paidBy && !!errors.paidBy}
                       >
                         <option value="">Seleccione un miembro</option>
-                        {project.members && project.members.map((member) => (
-                          <option key={member._id} value={member._id}>
-                            {member.name}
-                          </option>
-                        ))}
+                        {project.members && project.members.length > 0 ? (
+                          project.members.map((member) => (
+                            <option key={member.userId} value={member.userId}>
+                              {member.name}
+                            </option>
+                          ))
+                        ) : (
+                          <option disabled>No hay miembros disponibles</option>
+                        )}
                       </Form.Control>
                       <Form.Control.Feedback type="invalid">
                         {errors.paidBy}
@@ -177,7 +184,9 @@ function ProjectDetails() {
                                 value={product.product}
                                 onChange={handleChange}
                                 placeholder="Nombre del producto"
-                                isInvalid={touched.products?.[index]?.product && !!errors.products?.[index]?.product}
+                                isInvalid={
+                                  touched.products?.[index]?.product && !!errors.products?.[index]?.product
+                                }
                               />
                               <Form.Control
                                 type="number"
@@ -186,7 +195,9 @@ function ProjectDetails() {
                                 onChange={handleChange}
                                 placeholder="Monto del producto"
                                 className="ml-2"
-                                isInvalid={touched.products?.[index]?.amount && !!errors.products?.[index]?.amount}
+                                isInvalid={
+                                  touched.products?.[index]?.amount && !!errors.products?.[index]?.amount
+                                }
                               />
                               <Button
                                 variant="danger"

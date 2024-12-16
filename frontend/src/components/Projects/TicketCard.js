@@ -31,6 +31,7 @@ function TicketCard({ ticket, onEdit, onDelete, members }) {
         <Button variant="danger" onClick={() => onDelete(ticket._id)}>
           Eliminar Ticket
         </Button>
+
       </Card.Body>
     </Card>
   );

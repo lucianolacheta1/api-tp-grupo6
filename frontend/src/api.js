@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/projects';
+const FRIENDS_API_URL = 'http://localhost:5000/api/friends';
 
 const getAuthToken = () => {
   return localStorage.getItem('token');
@@ -84,7 +85,7 @@ export const deleteProject = async (projectId) => {
 // Obtener amigos
 export const getFriends = async () => {
   try {
-    const response = await axios.get(`${API_URL}/friends`, {
+    const response = await axios.get(FRIENDS_API_URL, {
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
       },
@@ -99,7 +100,7 @@ export const getFriends = async () => {
 // Añadir un amigo
 export const addFriend = async (friend) => {
   try {
-    const response = await axios.post(`${API_URL}/friends/add`, friend, {
+    const response = await axios.post(`${FRIENDS_API_URL}/add`, friend, {
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
       },
@@ -167,6 +168,21 @@ export const addExpenseToProject = async (projectId, expenseData) => {
     return response.data;
   } catch (error) {
     console.error('Error adding expense to project:', error);
+    throw error;
+  }
+};
+
+// Añadir un ticket al proyecto
+export const addTicketToProject = async (projectId, ticketData) => {
+  try {
+    const response = await axios.post(`${API_URL}/${projectId}/tickets`, ticketData, {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error adding ticket to project:', error);
     throw error;
   }
 };
