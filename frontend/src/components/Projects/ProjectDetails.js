@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, Modal, Form, Row, Col } from 'react-bootstrap';
-import { getProjectById, updateTicketInProject, deleteTicketFromProject, addTicketToProject } from '../../api';
-import Sidebar from '../Dashboard/Sidebar';
-import { Formik, FieldArray } from 'formik';
+import { Button, Modal, Form, Row, Col, Alert } from 'react-bootstrap';
+import {
+  getProjectById,
+  updateTicketInProject,
+  deleteTicketFromProject,
+  addTicketToProject,
+  addMemberToProject,
+  deleteMemberFromProject,
+  getFriends,
+} from '../../api';
+import { Formik } from 'formik';
 import * as Yup from 'yup';
 import UploadTicket from './UploadTicket';
 import TicketCard from './TicketCard';
@@ -11,29 +18,52 @@ import TicketCard from './TicketCard';
 function ProjectDetails({ setActiveSection }) {
   const { id } = useParams();
   const [project, setProject] = useState(null);
+  const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showEditTicketModal, setShowEditTicketModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState(null);
+  const [memberModalError, setMemberModalError] = useState('');
+
+  // Limpiar mensajes después de 15 segundos
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setErrorMessage('');
+      setSuccessMessage('');
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [errorMessage, successMessage]);
 
   useEffect(() => {
-    setActiveSection('projectDetails');
-    const fetchProject = async () => {
+    if (typeof setActiveSection === 'function') {
+      setActiveSection('projectDetails');
+    }
+
+    const fetchData = async () => {
       try {
-        const data = await getProjectById(id);
-        if (data.members) {
-          setProject(data);
-        } else {
-          setProject({ ...data, members: [] });
-        }
+        const [projectData, friendsData] = await Promise.all([
+          getProjectById(id),
+          getFriends(),
+        ]);
+        setProject({
+          ...projectData,
+          members: projectData.members || [],
+          tickets: projectData.tickets || [],
+        });
+        setFriends(friendsData);
       } catch (error) {
-        console.error('Error fetching project details:', error);
-        setErrorMessage('Failed to load project details. Please try again later.');
+        console.error('Error fetching project details or friends:', error);
+        setErrorMessage('No se pudo cargar el proyecto. Por favor, inténtelo más tarde.');
       } finally {
         setLoading(false);
       }
     };
-    fetchProject();
+    fetchData();
   }, [id, setActiveSection]);
 
   const handleEditTicket = (ticket) => {
@@ -45,11 +75,12 @@ function ProjectDetails({ setActiveSection }) {
     try {
       const updatedTicketData = { ...values };
       const response = await updateTicketInProject(id, values._id, updatedTicketData);
-      // Actualizar state local con la respuesta del servidor
       setProject(response.project);
       setShowEditTicketModal(false);
+      setSuccessMessage('Ticket actualizado exitosamente.');
     } catch (error) {
       console.error('Error updating ticket:', error);
+      setErrorMessage('Ocurrió un error al actualizar el ticket.');
     }
   };
 
@@ -57,177 +88,188 @@ function ProjectDetails({ setActiveSection }) {
     try {
       const response = await deleteTicketFromProject(id, ticketId);
       setProject(response.project);
+      setSuccessMessage('Ticket eliminado exitosamente.');
     } catch (error) {
       console.error('Error deleting ticket:', error);
+      setErrorMessage('Ocurrió un error al eliminar el ticket.');
     }
   };
 
   const handleUploadTicket = async (ticketData) => {
     try {
       const response = await addTicketToProject(id, ticketData);
-      // Actualizar el proyecto con la respuesta del servidor
       setProject(response.project);
+      setSuccessMessage('Ticket añadido exitosamente.');
     } catch (error) {
       console.error('Error adding ticket:', error);
+      setErrorMessage('No se pudo agregar el ticket. Por favor, inténtelo más tarde.');
     }
   };
 
-  if (loading) {
-    return <p>Cargando...</p>;
-  }
+  const handleAddMember = async (values, { resetForm }) => {
+    try {
+      const memberData = {
+        name: values.name,
+        userId: values.friendId || null,
+        isTemporary: !values.friendId,
+      };
+      const response = await addMemberToProject(id, memberData);
+      setProject(response.project);
+      setShowAddMemberModal(false);
+      resetForm();
+      setSuccessMessage('Miembro añadido exitosamente.');
+    } catch (error) {
+      console.error('Error adding member:', error);
+      setMemberModalError('No se pudo añadir el miembro. Inténtelo más tarde.');
+    }
+  };
 
-  if (!project) {
-    return <p>{errorMessage || 'Proyecto no encontrado'}</p>;
-  }
+  const handleConfirmDeleteMember = (member) => {
+    setMemberToDelete(member);
+    setShowConfirmDeleteModal(true);
+  };
+
+  const handleDeleteMember = async () => {
+    try {
+      const response = await deleteMemberFromProject(id, memberToDelete._id);
+      setProject(response.project);
+      setSuccessMessage('Miembro eliminado exitosamente.');
+    } catch (error) {
+      console.error('Error deleting member:', error);
+      setErrorMessage('No se pudo eliminar el miembro.');
+    } finally {
+      setShowConfirmDeleteModal(false);
+      setMemberToDelete(null);
+    }
+  };
+
+  if (loading) return <p>Cargando...</p>;
+  if (!project) return <p>{errorMessage || 'Proyecto no encontrado'}</p>;
 
   return (
-    <div className="d-flex">
-      <Sidebar />
-      <div className="flex-grow-1 p-4">
-        <h3>{project.name}</h3>
-        <p>{project.detail || 'Sin descripción'}</p>
+    <div className="p-4">
+      <h3>{project.name}</h3>
+      <p>{project.detail || 'Sin descripción'}</p>
 
-        <h4>Tickets</h4>
-        {/* Pasar los miembros al componente UploadTicket */}
-        <UploadTicket onUpload={handleUploadTicket} members={project.members || []} />
-        {project.tickets && project.tickets.length > 0 ? (
-          <Row xs={1} md={3} className="g-4">
-            {project.tickets.map((ticket) => (
-              <Col key={ticket._id}>
-                <TicketCard
-                  ticket={ticket}
-                  onEdit={() => handleEditTicket(ticket)}
-                  onDelete={() => handleDeleteTicket(ticket._id)}
-                  members={project.members || []}
-                />
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          <p>No hay tickets cargados.</p>
-        )}
+      {errorMessage && (
+        <Alert
+          variant="danger"
+          dismissible
+          onClose={() => setErrorMessage('')}
+        >
+          {errorMessage}
+        </Alert>
+      )}
+      {successMessage && (
+        <Alert
+          variant="success"
+          dismissible
+          onClose={() => setSuccessMessage('')}
+        >
+          {successMessage}
+        </Alert>
+      )}
 
-        {/* Modal para editar un ticket */}
-        {selectedTicket && (
-          <Modal show={showEditTicketModal} onHide={() => setShowEditTicketModal(false)}>
-            <Modal.Header closeButton>
-              <Modal.Title>Editar Ticket</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <Formik
-                initialValues={{
-                  ...selectedTicket,
-                  products: selectedTicket.products || [{ product: '', amount: '' }],
-                  paidBy: selectedTicket.paidBy || '',
-                }}
-                validationSchema={Yup.object({
-                  date: Yup.string().required('La fecha es obligatoria'),
-                  paidBy: Yup.string().required('Debe seleccionar quién pagó el ticket'),
-                  products: Yup.array().of(
-                    Yup.object({
-                      product: Yup.string().required('El nombre del producto es obligatorio'),
-                      amount: Yup.number().required('El monto del producto es obligatorio'),
-                    })
-                  ),
-                })}
-                onSubmit={handleUpdateTicket}
-              >
-                {({ values, handleChange, handleSubmit, errors, touched }) => (
-                  <Form onSubmit={handleSubmit}>
-                    <Form.Group controlId="date">
-                      <Form.Label>Fecha del Ticket</Form.Label>
-                      <Form.Control
-                        type="date"
-                        name="date"
-                        value={values.date}
-                        onChange={handleChange}
-                        isInvalid={touched.date && !!errors.date}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.date}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                    <Form.Group controlId="paidBy" className="mt-3">
-                      <Form.Label>Pagado por</Form.Label>
-                      <Form.Control
-                        as="select"
-                        name="paidBy"
-                        value={values.paidBy}
-                        onChange={handleChange}
-                        isInvalid={touched.paidBy && !!errors.paidBy}
-                      >
-                        <option value="">Seleccione un miembro</option>
-                        {project.members && project.members.length > 0 ? (
-                          project.members.map((member) => (
-                            <option key={member.userId} value={member.userId}>
-                              {member.name}
-                            </option>
-                          ))
-                        ) : (
-                          <option disabled>No hay miembros disponibles</option>
-                        )}
-                      </Form.Control>
-                      <Form.Control.Feedback type="invalid">
-                        {errors.paidBy}
-                      </Form.Control.Feedback>
-                    </Form.Group>
 
-                    <FieldArray
-                      name="products"
-                      render={(arrayHelpers) => (
-                        <div>
-                          {values.products.map((product, index) => (
-                            <div key={index} className="d-flex mb-2">
-                              <Form.Control
-                                type="text"
-                                name={`products[${index}].product`}
-                                value={product.product}
-                                onChange={handleChange}
-                                placeholder="Nombre del producto"
-                                isInvalid={
-                                  touched.products?.[index]?.product && !!errors.products?.[index]?.product
-                                }
-                              />
-                              <Form.Control
-                                type="number"
-                                name={`products[${index}].amount`}
-                                value={product.amount}
-                                onChange={handleChange}
-                                placeholder="Monto del producto"
-                                className="ml-2"
-                                isInvalid={
-                                  touched.products?.[index]?.amount && !!errors.products?.[index]?.amount
-                                }
-                              />
-                              <Button
-                                variant="danger"
-                                onClick={() => arrayHelpers.remove(index)}
-                                className="ml-2"
-                              >
-                                Eliminar
-                              </Button>
-                            </div>
-                          ))}
-                          <Button
-                            variant="secondary"
-                            onClick={() => arrayHelpers.push({ product: '', amount: '' })}
-                            className="mt-2"
-                          >
-                            Añadir Producto
-                          </Button>
-                        </div>
-                      )}
-                    />
-                    <Button variant="primary" type="submit" className="mt-3">
-                      Guardar Cambios
-                    </Button>
-                  </Form>
-                )}
-              </Formik>
-            </Modal.Body>
-          </Modal>
-        )}
-      </div>
+      {/* Gestión de Miembros */}
+      <h4>Miembros</h4>
+      <Button variant="primary" className="mb-3" onClick={() => setShowAddMemberModal(true)}>
+        Añadir Miembro
+      </Button>
+      <ul className="list-group">
+        {project.members.map((member) => (
+          <li
+            key={member._id}
+            className="list-group-item d-flex justify-content-between align-items-center"
+          >
+            {member.name}
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => handleConfirmDeleteMember(member)}
+            >
+              Eliminar
+            </Button>
+          </li>
+        ))}
+      </ul>
+
+
+      {/* Gestión de Tickets */}
+      <h4>Tickets</h4>
+      <UploadTicket onUpload={handleUploadTicket} members={project.members} />
+      <Row xs={1} md={3} className="g-4 mt-3">
+        {project.tickets.map((ticket) => (
+          <Col key={ticket._id}>
+            <TicketCard
+              ticket={ticket}
+              onEdit={() => handleEditTicket(ticket)}
+              onDelete={() => handleDeleteTicket(ticket._id)}
+              members={project.members}
+            />
+          </Col>
+        ))}
+      </Row>
+
+      {/* Modal para añadir miembros */}
+      <Modal show={showAddMemberModal} onHide={() => setShowAddMemberModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Añadir Miembro</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {memberModalError && <Alert variant="danger">{memberModalError}</Alert>}
+          <Formik
+            initialValues={{ friendId: '', name: '' }}
+            validationSchema={Yup.object({
+              name: Yup.string().when('friendId', {
+                is: '',
+                then: Yup.string().required('El nombre es obligatorio si no seleccionas un amigo'),
+              }),
+            })}
+            onSubmit={handleAddMember}
+          >
+            {({ handleSubmit, handleChange, values, errors, touched }) => (
+              <Form noValidate onSubmit={handleSubmit}>
+                <Form.Group>
+                  <Form.Label>Seleccionar Amigo</Form.Label>
+                  <Form.Control as="select" name="friendId" value={values.friendId} onChange={handleChange}>
+                    <option value="">-- Seleccionar Amigo --</option>
+                    {friends.map((f) => (
+                      <option key={f._id} value={f._id}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </Form.Control>
+                </Form.Group>
+                <Form.Group>
+                  <Form.Label>Nombre del Miembro</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={values.name}
+                    onChange={handleChange}
+                    isInvalid={touched.name && errors.name}
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
+                </Form.Group>
+                <Button type="submit" className="mt-3">Añadir</Button>
+              </Form>
+            )}
+          </Formik>
+        </Modal.Body>
+      </Modal>
+
+      {/* Modal de confirmación para eliminar miembros */}
+      <Modal show={showConfirmDeleteModal} onHide={() => setShowConfirmDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Eliminar Miembro</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>¿Estás seguro de que quieres eliminar a "{memberToDelete?.name}"?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmDeleteModal(false)}>Cancelar</Button>
+          <Button variant="danger" onClick={handleDeleteMember}>Eliminar</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 const Project = require('../models/Project');
+const User = require('../models/User');
 
 // Obtener todos los proyectos del usuario autenticado
 exports.getAllProjects = async (req, res) => {
@@ -20,8 +21,30 @@ exports.createProject = async (req, res) => {
       return res.status(400).json({ message: 'Ya existe un proyecto con ese nombre' });
     }
 
-    // Verificar que se haya enviado al menos un miembro
-    if (!members || !Array.isArray(members) || members.length === 0 || !members[0].name) {
+    // Obtener el usuario autenticado para usar su nombre
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    let finalMembers = members;
+    if (!finalMembers || !Array.isArray(finalMembers) || finalMembers.length === 0) {
+      finalMembers = [{
+        name: user.username,
+        userId: user._id,
+        isTemporary: false,
+      }];
+    } else {
+      // Forzar el primer miembro a ser el usuario actual
+      finalMembers[0] = {
+        name: user.username,
+        userId: user._id,
+        isTemporary: false
+      };
+    }
+
+    // Checar que el primer miembro tenga nombre
+    if (!finalMembers[0].name) {
       return res.status(400).json({ message: 'Debes proporcionar al menos un miembro con nombre.' });
     }
 
@@ -29,7 +52,7 @@ exports.createProject = async (req, res) => {
       userId: req.user.userId,
       name,
       detail,
-      members,
+      members: finalMembers,
       totalExpense: 0,
       status: status || 'En progreso',
     });
@@ -198,5 +221,27 @@ exports.addMemberToProject = async (req, res) => {
   } catch (err) {
     console.error('Error al añadir miembro al proyecto:', err);
     res.status(500).json({ message: 'Error al añadir miembro al proyecto' });
+  }
+};
+
+    // Eliminar miembro del proyecto
+exports.deleteMemberFromProject = async (req, res) => {
+  const { id, memberId } = req.params;
+
+  try {
+    const project = await Project.findOne({ _id: id, userId: req.user.userId });
+    if (!project) {
+      return res.status(404).json({ message: 'Proyecto no encontrado' });
+    }
+
+    // Filtrar al miembro a eliminar
+    const updatedMembers = project.members.filter((member) => member._id.toString() !== memberId);
+    project.members = updatedMembers;
+
+    await project.save();
+    res.status(200).json({ message: 'Miembro eliminado exitosamente', project });
+  } catch (err) {
+    console.error('Error al eliminar miembro del proyecto:', err);
+    res.status(500).json({ message: 'Error al eliminar miembro del proyecto' });
   }
 };

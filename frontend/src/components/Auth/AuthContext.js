@@ -9,8 +9,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('Verificando el token desde localStorage:', token);
-    
+    // Quitar o comentar logs innecesarios
+    // console.log('Verificando el token desde localStorage:', token);
+
     if (token) {
       setIsAuthLoading(true);
       axios
@@ -20,7 +21,6 @@ export const AuthProvider = ({ children }) => {
           },
         })
         .then((response) => {
-          console.log('Usuario autenticado:', response.data);
           setAuthenticatedUser(response.data);
         })
         .catch((error) => {
@@ -34,10 +34,8 @@ export const AuthProvider = ({ children }) => {
       setIsAuthLoading(false);
     }
   }, []);
-  
 
   const login = useCallback((token) => {
-    // Guardar el token en localStorage y actualizar el usuario autenticado
     localStorage.setItem('token', token);
     setIsAuthLoading(true);
     axios
@@ -51,7 +49,7 @@ export const AuthProvider = ({ children }) => {
       })
       .catch((error) => {
         console.error('Error fetching user after login:', error);
-        localStorage.removeItem('token'); // Eliminar token si falla
+        localStorage.removeItem('token');
       })
       .finally(() => {
         setIsAuthLoading(false);
@@ -60,7 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     setAuthenticatedUser(null);
-    localStorage.removeItem('token'); // Eliminar el token al cerrar sesión
+    localStorage.removeItem('token');
   }, []);
 
   const value = useMemo(

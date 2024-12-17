@@ -8,6 +8,8 @@ const {
   addTicketToProject,
   updateTicketInProject,
   deleteTicketFromProject,
+  addMemberToProject,
+  deleteMemberFromProject,
 } = require('../controllers/projectController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
@@ -36,5 +38,12 @@ router.put('/:projectId/tickets/:ticketId', authenticateToken, updateTicketInPro
 
 // Ruta para eliminar un ticket de un proyecto
 router.delete('/:projectId/tickets/:ticketId', authenticateToken, deleteTicketFromProject);
+
+// Ruta para añadir un miembro al proyecto
+router.post('/:id/members', authenticateToken, addMemberToProject);
+
+// Eliminar un miembro de un proyecto
+router.delete('/:id/members/:memberId', authenticateToken, deleteMemberFromProject);
+
 
 module.exports = router;

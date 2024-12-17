@@ -8,13 +8,11 @@ exports.addFriend = async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    // Verificar si existe un usuario con el email proporcionado
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
       return res.status(404).json({ message: 'No existe ningún usuario con ese email.' });
     }
 
-    // Si el usuario existe, crear el amigo
     const newFriend = new Friend({ userId, name, email });
     await newFriend.save();
     res.status(201).json({ message: 'Amigo añadido con éxito', friend: newFriend });
@@ -32,5 +30,22 @@ exports.getFriends = async (req, res) => {
   } catch (err) {
     console.error('Error al obtener amigos:', err);
     res.status(500).json({ message: 'Error al obtener los amigos' });
+  }
+};
+
+// Eliminar un amigo
+exports.deleteFriend = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const friend = await Friend.findOneAndDelete({ _id: id, userId });
+    if (!friend) {
+      return res.status(404).json({ message: 'Amigo no encontrado' });
+    }
+    res.status(200).json({ message: 'Amigo eliminado con éxito' });
+  } catch (error) {
+    console.error('Error al eliminar amigo:', error);
+    res.status(500).json({ message: 'Error al eliminar el amigo' });
   }
 };

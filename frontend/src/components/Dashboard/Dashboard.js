@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import Sidebar from './Sidebar';
 import ProjectManager from '../Projects/ProjectManager';
 import ProjectDetails from '../Projects/ProjectDetails';
 import FriendsManager from './FriendsManager';
@@ -17,7 +16,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (activeSection === 'friends') {
-      // Cargar amigos desde el backend cuando se selecciona la sección de amigos
       const fetchFriends = async () => {
         try {
           const friendsData = await getFriends();
@@ -44,13 +42,8 @@ const Dashboard = () => {
   return (
     <Container fluid className="mt-4">
       <Row>
-        {/* Menú lateral izquierdo */}
-        <Col xs={12} md={3} lg={2} className="px-0">
-          <Sidebar setActiveSection={setActiveSection} />
-        </Col>
-
-        {/* Contenido principal */}
-        <Col xs={12} md={9} lg={10} className="pt-4">
+        {/* Contenido principal ocupando todo el ancho (asumiendo que el Sidebar está en el layout) */}
+        <Col xs={12} className="pt-4">
           {activeSection === 'projects' && !selectedProject && (
             <ProjectManager
               projects={projects}
@@ -72,16 +65,18 @@ const Dashboard = () => {
               }}
               friends={friends}
               setFriends={setFriends}
-              setActiveSection={setActiveSection} // Asegúrate de pasar esta prop
+              setActiveSection={setActiveSection}
             />
           )}
 
           {activeSection === 'expenses' && (
             <ExpensesManager expenses={expenses} setExpenses={setExpenses} />
           )}
+
           {activeSection === 'friends' && (
             <FriendsManager friends={friends} setFriends={setFriends} />
           )}
+
           {activeSection === 'history' && (
             <HistoryReports expenses={expenses} />
           )}

@@ -22,7 +22,7 @@ app.use(express.json());
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
-app.use('/api/friends', friendRoutes); // Añadir rutas de amigos
+app.use('/api/friends', friendRoutes);
 
 // Ruta principal
 app.get('/', (req, res) => {

@@ -7,10 +7,6 @@ function PrivateRoute({ children }) {
   const { authenticatedUser, isAuthLoading } = useContext(AuthContext);
   const location = useLocation();
 
-  // Agregar logs para depurar
-  console.log('Estado del usuario autenticado:', authenticatedUser);
-  console.log('Estado de carga de autenticación:', isAuthLoading);
-
   if (isAuthLoading) {
     return <div>Cargando...</div>;
   }
