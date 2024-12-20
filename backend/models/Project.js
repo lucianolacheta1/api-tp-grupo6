@@ -74,25 +74,40 @@ const memberSchema = new mongoose.Schema({
 
 // Esquema de proyecto
 const projectSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   name: {
     type: String,
     required: true,
   },
-  detail: {
-    type: String,
-    required: true,
+  detail: String,
+  members: [memberSchema],
+  totalExpense: {
+    type: Number,
+    default: 0,
   },
-  members: [{
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
+  status: {
+    type: String,
+    enum: ['En progreso', 'Finalizado'],
+    default: 'En progreso',
+  },
+  tickets: [ticketSchema],
+  expenses: [
+    {
+      description: String,
+      amount: Number,
+      members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      divisionType: String,
+      percentages: [Number],
     },
-    name: {
-      type: String,
-      required: true,
-    },
-  }],
+  ],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model('Project', projectSchema);

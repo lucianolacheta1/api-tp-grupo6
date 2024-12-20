@@ -2,7 +2,6 @@
 const nodemailer = require('nodemailer');
 const sendMail = require('./config/mailer');
 
-
 // Cargar las variables de entorno desde el archivo .env
 nodemailer.createTransport({
     host: "smtp.example.com",
