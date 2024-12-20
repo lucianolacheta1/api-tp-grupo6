@@ -10,7 +10,8 @@ const {
   deleteTicketFromProject,
   addMemberToProject,
   deleteMemberFromProject,
-  getProjectBalances, // Importar la nueva función
+  getProjectBalances,
+  createProjectAndAddMember, // Importar la nueva función
 } = require('../controllers/projectController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
@@ -30,5 +31,11 @@ router.delete('/:id/members/:memberId', authenticateToken, deleteMemberFromProje
 
 // Nueva ruta para obtener balances
 router.get('/:id/balances', authenticateToken, getProjectBalances);
+
+// Ruta para añadir un miembro al proyecto
+router.post('/:projectId/members', authenticateToken, addMemberToProject);
+
+// Ruta para crear un proyecto y añadir un miembro
+router.post('/create', authenticateToken, createProjectAndAddMember);
 
 module.exports = router;

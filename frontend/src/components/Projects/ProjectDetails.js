@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Modal, Form, Row, Col, Alert } from 'react-bootstrap';
 import {
   getProjectById,
@@ -19,6 +19,7 @@ import BalanceSummary from './BalanceSummary';
 
 function ProjectDetails({ setActiveSection }) {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -184,6 +185,9 @@ function ProjectDetails({ setActiveSection }) {
 
   return (
     <div className="p-4">
+      <Button variant="secondary" onClick={() => navigate('/projects')} className="mb-3">
+        Volver a la Lista de Proyectos
+      </Button>
       <h3>{project.name}</h3>
       <p>{project.detail || 'Sin descripción'}</p>
 
