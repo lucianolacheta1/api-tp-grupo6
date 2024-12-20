@@ -2,7 +2,7 @@
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}", 
-    './public/index.html'// Asegurar de que Tailwind procese archivos de React
+    './public/index.html'
   ],
   theme: {
     extend: {},
