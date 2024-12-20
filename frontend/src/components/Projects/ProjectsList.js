@@ -9,7 +9,6 @@ const ProjectsList = () => {
     return <p>Please log in to view projects.</p>;
   }
 
-  // Aquí solo estamos mostrando ProjectManager, que se encarga de toda la gestión
   return (
     <div>
       <h1>Projects</h1>

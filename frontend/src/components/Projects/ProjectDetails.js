@@ -9,6 +9,7 @@ import {
   addMemberToProject,
   deleteMemberFromProject,
   getFriends,
+  updateProject,
 } from '../../api';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -30,6 +31,8 @@ function ProjectDetails({ setActiveSection }) {
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState(null);
   const [memberModalError, setMemberModalError] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
+
 
   // Limpiar mensajes después de 10 segundos
   useEffect(() => {
@@ -72,6 +75,7 @@ function ProjectDetails({ setActiveSection }) {
       const response = await addTicketToProject(id, ticketData);
       setProject(response.project);
       setSuccessMessage('Ticket añadido exitosamente.');
+      setRefreshKey(refreshKey + 1);
     } catch (error) {
       console.error('Error adding ticket:', error);
       setErrorMessage('No se pudo agregar el ticket. Por favor, inténtelo más tarde.');
@@ -79,7 +83,6 @@ function ProjectDetails({ setActiveSection }) {
   };
 
   const handleEditTicket = (ticket) => {
-    // Convertimos el ticket a initialValues compatible
     const initialValues = {
       date: ticket.date.split('T')[0],
       paidBy: ticket.paidBy,
@@ -104,6 +107,7 @@ function ProjectDetails({ setActiveSection }) {
       setProject(response.project);
       setShowEditTicketModal(false);
       setSuccessMessage('Ticket actualizado exitosamente.');
+      setRefreshKey(refreshKey + 1);
     } catch (error) {
       console.error('Error updating ticket:', error);
       setErrorMessage('Ocurrió un error al actualizar el ticket.');
@@ -115,6 +119,7 @@ function ProjectDetails({ setActiveSection }) {
       const response = await deleteTicketFromProject(id, ticketId);
       setProject(response.project);
       setSuccessMessage('Ticket eliminado exitosamente.');
+      setRefreshKey(refreshKey + 1);
     } catch (error) {
       console.error('Error deleting ticket:', error);
       setErrorMessage('Ocurrió un error al eliminar el ticket.');
@@ -157,6 +162,19 @@ function ProjectDetails({ setActiveSection }) {
       setMemberToDelete(null);
     }
   };
+
+  const handleCloseProjectFromDetails = async () => {
+    try {
+      const updated = await updateProject(id, { status: "Finalizado" });
+      setProject(updated); 
+      // Opcional: mostrar mensaje de éxito
+      setSuccessMessage("Proyecto cerrado exitosamente.");
+    } catch (error) {
+      console.error("Error al cerrar el proyecto:", error);
+      setErrorMessage("No se pudo cerrar el proyecto.");
+    }
+  };
+  
 
   if (loading) return <p>Cargando...</p>;
   if (!project) return <p>{errorMessage || 'Proyecto no encontrado'}</p>;
@@ -204,6 +222,7 @@ function ProjectDetails({ setActiveSection }) {
             >
               Eliminar
             </Button>
+            
           </li>
         ))}
       </ul>
@@ -226,7 +245,14 @@ function ProjectDetails({ setActiveSection }) {
         ))}
       </Row>
 
-      <BalanceSummary projectId={id} />
+      <BalanceSummary projectId={id} refreshKey={refreshKey} />
+
+      {project.status === "En progreso" && (
+        <div className="text-center mt-4">
+          <Button variant="warning" onClick={handleCloseProjectFromDetails}>Cerrar Proyecto</Button>
+        </div>
+      )}
+
 
       {/* Modal para añadir miembros */}
       <Modal show={showAddMemberModal} onHide={() => setShowAddMemberModal(false)}>

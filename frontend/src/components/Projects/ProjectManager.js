@@ -3,7 +3,7 @@ import { Button, Modal, Form, ListGroup, Card, Row, Col } from 'react-bootstrap'
 import PropTypes from 'prop-types';
 import { Formik, FieldArray } from 'formik';
 import * as Yup from 'yup';
-import { createProject, getProjects, deleteProject, getFriends } from '../../api';
+import { createProject, getProjects, deleteProject, getFriends, updateProject } from '../../api';
 import { useNavigate } from 'react-router-dom';
 
 function ProjectManager({ onSelectProject }) {
@@ -20,7 +20,8 @@ function ProjectManager({ onSelectProject }) {
       setLoading(true);
       try {
         const data = await getProjects();
-        setProjects(data);
+        const enProgreso = data.filter(proj => proj.status === "En progreso");
+        setProjects(enProgreso);
       } catch (error) {
         console.error('Error fetching projects:', error);
         setErrorMessage('Failed to load projects. Please try again later.');
@@ -134,6 +135,18 @@ function ProjectManager({ onSelectProject }) {
     ).min(1, 'Debes agregar al menos un miembro'),
   });
 
+  const handleCloseProject = async (projectId) => {
+    try {
+      const updated = await updateProject(projectId, { status: "Finalizado" });
+      // Actualizar la lista filtrando otra vez
+      const data = await getProjects();
+      const enProgreso = data.filter(proj => proj.status === "En progreso");
+      setProjects(enProgreso);
+    } catch (error) {
+      console.error("Error al cerrar el proyecto:", error);
+    }
+  };
+  
   return (
     <div>
       <h3>Mis Proyectos</h3>
@@ -159,21 +172,29 @@ function ProjectManager({ onSelectProject }) {
                     </div>
                     <div>
                       <Button
-                        variant="outline-primary"
+                        variant="primary"
                         size="sm"
                         onClick={() => handleViewDetails(project._id)}
-                        className="mr-2"
+                        className="me-2"
+                        class=""
                       >
                         Ver Detalles
                       </Button>
                       <Button
-                        variant="outline-danger"
+                        variant="danger"
                         size="sm"
                         onClick={() => handleDeleteProject(project._id)}
-                        className="ml-2"
+                        className="me-2"
                       >
                         Eliminar
                       </Button>
+                      <Button
+                        variant="warning"
+                        size="sm"
+                        onClick={() => handleCloseProject(project._id)}>
+                        Cerrar Proyecto
+                      </Button>
+
                     </div>
                   </div>
                 </Card.Body>

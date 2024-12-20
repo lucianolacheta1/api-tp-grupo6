@@ -35,12 +35,12 @@ exports.createProject = async (req, res) => {
         isTemporary: false,
       }];
     } else {
-      // Forzar el primer miembro a ser el usuario actual
-      finalMembers[0] = {
+      // Inserta el usuario al inicio sin sobrescribir el primer elemento existente
+      finalMembers.unshift({
         name: user.username,
         userId: user._id,
         isTemporary: false
-      };
+      });
     }
 
     // Checar que el primer miembro tenga nombre

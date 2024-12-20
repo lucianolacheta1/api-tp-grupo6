@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Table } from 'react-bootstrap';
 
-const BalanceSummary = ({ projectId }) => {
+const BalanceSummary = ({ projectId, refreshKey }) => {
   const [balances, setBalances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -31,7 +31,7 @@ const BalanceSummary = ({ projectId }) => {
     };
 
     fetchBalances();
-  }, [projectId]);
+  }, [projectId, refreshKey]);
 
   if (loading) {
     return <p>Cargando balances...</p>;
@@ -69,6 +69,7 @@ const BalanceSummary = ({ projectId }) => {
 
 BalanceSummary.propTypes = {
   projectId: PropTypes.string.isRequired,
+  refreshKey: PropTypes.number.isRequired,
 };
 
 export default BalanceSummary;
