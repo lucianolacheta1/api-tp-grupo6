@@ -14,6 +14,7 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import UploadTicket from './UploadTicket';
 import TicketCard from './TicketCard';
+import BalanceSummary from './BalanceSummary';
 
 function ProjectDetails({ setActiveSection }) {
   const { id } = useParams();
@@ -22,6 +23,7 @@ function ProjectDetails({ setActiveSection }) {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [showCreateTicketModal, setShowCreateTicketModal] = useState(false);
   const [showEditTicketModal, setShowEditTicketModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
@@ -29,13 +31,12 @@ function ProjectDetails({ setActiveSection }) {
   const [memberToDelete, setMemberToDelete] = useState(null);
   const [memberModalError, setMemberModalError] = useState('');
 
-  // Limpiar mensajes después de 15 segundos
+  // Limpiar mensajes después de 10 segundos
   useEffect(() => {
     const timer = setTimeout(() => {
       setErrorMessage('');
       setSuccessMessage('');
     }, 10000);
-
     return () => clearTimeout(timer);
   }, [errorMessage, successMessage]);
 
@@ -66,15 +67,40 @@ function ProjectDetails({ setActiveSection }) {
     fetchData();
   }, [id, setActiveSection]);
 
+  const handleUploadTicket = async (ticketData) => {
+    try {
+      const response = await addTicketToProject(id, ticketData);
+      setProject(response.project);
+      setSuccessMessage('Ticket añadido exitosamente.');
+    } catch (error) {
+      console.error('Error adding ticket:', error);
+      setErrorMessage('No se pudo agregar el ticket. Por favor, inténtelo más tarde.');
+    }
+  };
+
   const handleEditTicket = (ticket) => {
-    setSelectedTicket(ticket);
+    // Convertimos el ticket a initialValues compatible
+    const initialValues = {
+      date: ticket.date.split('T')[0],
+      paidBy: ticket.paidBy,
+      divisionType: ticket.divisionType,
+      details: ticket.products.map(p => ({product: p.product, amount: p.amount})),
+      divisionMembers: ticket.divisionMembers.map(dm => {
+        if (ticket.divisionType === 'porcentual') {
+          return { memberId: dm.memberId, percentage: dm.percentage };
+        } else {
+          return { memberId: dm.memberId };
+        }
+      }),
+    };
+    setSelectedTicket({...ticket, initialValues});
     setShowEditTicketModal(true);
   };
 
   const handleUpdateTicket = async (values) => {
     try {
       const updatedTicketData = { ...values };
-      const response = await updateTicketInProject(id, values._id, updatedTicketData);
+      const response = await updateTicketInProject(id, selectedTicket._id, updatedTicketData);
       setProject(response.project);
       setShowEditTicketModal(false);
       setSuccessMessage('Ticket actualizado exitosamente.');
@@ -92,17 +118,6 @@ function ProjectDetails({ setActiveSection }) {
     } catch (error) {
       console.error('Error deleting ticket:', error);
       setErrorMessage('Ocurrió un error al eliminar el ticket.');
-    }
-  };
-
-  const handleUploadTicket = async (ticketData) => {
-    try {
-      const response = await addTicketToProject(id, ticketData);
-      setProject(response.project);
-      setSuccessMessage('Ticket añadido exitosamente.');
-    } catch (error) {
-      console.error('Error adding ticket:', error);
-      setErrorMessage('No se pudo agregar el ticket. Por favor, inténtelo más tarde.');
     }
   };
 
@@ -170,7 +185,6 @@ function ProjectDetails({ setActiveSection }) {
         </Alert>
       )}
 
-
       {/* Gestión de Miembros */}
       <h4>Miembros</h4>
       <Button variant="primary" className="mb-3" onClick={() => setShowAddMemberModal(true)}>
@@ -194,22 +208,25 @@ function ProjectDetails({ setActiveSection }) {
         ))}
       </ul>
 
-
       {/* Gestión de Tickets */}
       <h4>Tickets</h4>
-      <UploadTicket onUpload={handleUploadTicket} members={project.members} />
+      <Button variant="primary" onClick={() => setShowCreateTicketModal(true)} className="mb-3">
+        Cargar mi Ticket
+      </Button>
       <Row xs={1} md={3} className="g-4 mt-3">
         {project.tickets.map((ticket) => (
           <Col key={ticket._id}>
             <TicketCard
               ticket={ticket}
-              onEdit={() => handleEditTicket(ticket)}
+              onEdit={handleEditTicket}
               onDelete={() => handleDeleteTicket(ticket._id)}
               members={project.members}
             />
           </Col>
         ))}
       </Row>
+
+      <BalanceSummary projectId={id} />
 
       {/* Modal para añadir miembros */}
       <Modal show={showAddMemberModal} onHide={() => setShowAddMemberModal(false)}>
@@ -241,7 +258,7 @@ function ProjectDetails({ setActiveSection }) {
                     ))}
                   </Form.Control>
                 </Form.Group>
-                <Form.Group>
+                <Form.Group className="mt-3">
                   <Form.Label>Nombre del Miembro</Form.Label>
                   <Form.Control
                     type="text"
@@ -270,6 +287,27 @@ function ProjectDetails({ setActiveSection }) {
           <Button variant="danger" onClick={handleDeleteMember}>Eliminar</Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal crear ticket */}
+      <UploadTicket
+        mode="create"
+        onUpload={handleUploadTicket}
+        members={project.members}
+        show={showCreateTicketModal}
+        onHide={() => setShowCreateTicketModal(false)}
+      />
+
+      {/* Modal editar ticket */}
+      {selectedTicket && (
+        <UploadTicket
+          mode="edit"
+          initialValues={selectedTicket.initialValues}
+          onUpdate={handleUpdateTicket}
+          members={project.members}
+          show={showEditTicketModal}
+          onHide={() => setShowEditTicketModal(false)}
+        />
+      )}
     </div>
   );
 }

@@ -245,3 +245,105 @@ exports.deleteMemberFromProject = async (req, res) => {
     res.status(500).json({ message: 'Error al eliminar miembro del proyecto' });
   }
 };
+
+exports.getProjectBalances = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const project = await Project.findOne({ _id: id, userId: req.user.userId });
+    if (!project) {
+      return res.status(404).json({ message: 'Proyecto no encontrado' });
+    }
+
+    const members = project.members; 
+    const paidMap = {};
+    const oweMap = {};
+
+    // Inicializar valores en 0 para cada miembro por su name
+    members.forEach(m => {
+      paidMap[m.name] = 0;
+      oweMap[m.name] = 0;
+    });
+
+    // Calcular lo que pagó y lo que debe cada miembro
+    project.tickets.forEach(ticket => {
+      const totalTicket = ticket.products.reduce((sum, p) => sum + p.amount, 0);
+      const payer = ticket.paidBy; // ahora es el nombre del miembro
+
+      // Suma a lo pagado por el pagador
+      if (paidMap[payer] !== undefined) {
+        paidMap[payer] += totalTicket;
+      }
+
+      if (ticket.divisionType === 'equitativo') {
+        const count = ticket.divisionMembers.length;
+        const share = totalTicket / count;
+        ticket.divisionMembers.forEach(dm => {
+          const memberName = dm.memberId; // es el name del miembro
+          if (oweMap[memberName] !== undefined) {
+            oweMap[memberName] += share;
+          }
+        });
+      } else {
+        // porcentual
+        ticket.divisionMembers.forEach(dm => {
+          const memberName = dm.memberId; // es el name del miembro
+          const portion = (totalTicket * dm.percentage) / 100;
+          if (oweMap[memberName] !== undefined) {
+            oweMap[memberName] += portion;
+          }
+        });
+      }
+    });
+
+    // balance = lo que pagó - lo que debía pagar
+    const balancesArr = [];
+    for (const m of members) {
+      const balance = (paidMap[m.name] || 0) - (oweMap[m.name] || 0);
+      balancesArr.push({ name: m.name, balance });
+    }
+
+    // Ahora generamos las transacciones mínimas
+    // Tomamos a los que tienen balance negativo (deudores) y positivo (acreedores)
+    const debtors = balancesArr.filter(b => b.balance < 0).map(b => ({...b}));
+    const creditors = balancesArr.filter(b => b.balance > 0).map(b => ({...b}));
+
+    const result = [];
+
+    // Mientras haya deudores y acreedores
+    let i = 0;
+    let j = 0;
+
+    while (i < debtors.length && j < creditors.length) {
+      const debtor = debtors[i];
+      const creditor = creditors[j];
+
+      const amount = Math.min(Math.abs(debtor.balance), creditor.balance);
+
+      if (amount > 0) {
+        result.push({
+          from: debtor.name,
+          to: creditor.name,
+          amount: amount
+        });
+      }
+
+      // Actualizar balances
+      debtor.balance += amount; // debtor.balance es negativo, sumamos amount para acercarlo a 0
+      creditor.balance -= amount;
+
+      if (Math.abs(debtor.balance) < 0.0001) {
+        i++;
+      }
+      if (creditor.balance < 0.0001) {
+        j++;
+      }
+    }
+
+    // result es array de {from, to, amount}
+    res.json(result);
+
+  } catch (err) {
+    console.error('Error al obtener balances del proyecto:', err);
+    res.status(500).json({ message: 'Error al obtener balances del proyecto' });
+  }
+};

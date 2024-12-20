@@ -55,9 +55,10 @@ const BalanceSummary = ({ projectId }) => {
         <tbody>
           {balances.map((balance, index) => (
             <tr key={index}>
-              <td>{balance.from}</td>
-              <td>{balance.to}</td>
-              <td>${balance.amount}</td>
+            <td>{typeof balance.from === 'object' ? balance.from.name : balance.from}</td>
+            <td>{typeof balance.to === 'object' ? balance.to.name : balance.to}</td>
+            <td>${balance.amount}</td>
+
             </tr>
           ))}
         </tbody>

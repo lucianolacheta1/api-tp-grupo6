@@ -3,14 +3,15 @@ import PropTypes from 'prop-types';
 import { Card, Button } from 'react-bootstrap';
 
 function TicketCard({ ticket, onEdit, onDelete, members }) {
-  const payer = members.find((member) => member._id === ticket.paidBy)?.name || 'Desconocido';
-
+  const payerMember = members.find((member) => member.name === ticket.paidBy);
+  const payer = payerMember ? payerMember.name : 'Desconocido';
+  
   return (
     <Card className="mb-3">
       <Card.Body>
         <Card.Title>Detalles del Ticket</Card.Title>
         <Card.Text>
-          <strong>Fecha:</strong> {ticket.date}
+          <strong>Fecha:</strong> {new Date(ticket.date).toLocaleDateString()}
         </Card.Text>
         <Card.Text>
           <strong>Pagado por:</strong> {payer}
@@ -25,13 +26,14 @@ function TicketCard({ ticket, onEdit, onDelete, members }) {
             </li>
           ))}
         </ul>
-        <Button variant="secondary" onClick={() => onEdit(ticket)} className="mr-2">
-          Editar Ticket
-        </Button>
+        {onEdit && (
+          <Button variant="secondary" onClick={() => onEdit(ticket)} className="mr-2">
+            Editar Ticket
+          </Button>
+        )}
         <Button variant="danger" onClick={() => onDelete(ticket._id)}>
           Eliminar Ticket
         </Button>
-
       </Card.Body>
     </Card>
   );
@@ -48,8 +50,10 @@ TicketCard.propTypes = {
         amount: PropTypes.number.isRequired,
       })
     ).isRequired,
+    divisionType: PropTypes.string.isRequired,
+    divisionMembers: PropTypes.array.isRequired,
   }).isRequired,
-  onEdit: PropTypes.func.isRequired,
+  onEdit: PropTypes.func,  // ya no es required
   onDelete: PropTypes.func.isRequired,
   members: PropTypes.array.isRequired,
 };

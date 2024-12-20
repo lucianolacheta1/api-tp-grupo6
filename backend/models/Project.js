@@ -20,9 +20,8 @@ const ticketSchema = new mongoose.Schema({
   },
   products: [productSchema],
   paidBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
+    type: String,
+      required: true,
   },
   divisionType: {
     type: String,
@@ -32,8 +31,7 @@ const ticketSchema = new mongoose.Schema({
   divisionMembers: [
     {
       memberId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true,
       },
       percentage: {
