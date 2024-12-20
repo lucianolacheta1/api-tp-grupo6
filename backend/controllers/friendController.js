@@ -8,11 +8,7 @@ exports.addFriend = async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    const existingUser = await User.findOne({ email });
-    if (!existingUser) {
-      return res.status(404).json({ message: 'No existe ningún usuario con ese email.' });
-    }
-
+    // Elimina la verificación de usuario existente
     const newFriend = new Friend({ userId, name, email });
     await newFriend.save();
     res.status(201).json({ message: 'Amigo añadido con éxito', friend: newFriend });

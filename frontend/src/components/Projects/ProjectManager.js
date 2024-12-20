@@ -10,6 +10,8 @@ function ProjectManager({ onSelectProject }) {
   const [projects, setProjects] = useState([]);
   const [friends, setFriends] = useState([]); // Para almacenar la lista de amigos
   const [showModal, setShowModal] = useState(false);
+  const [showConfirmCloseModal, setShowConfirmCloseModal] = useState(false);
+  const [projectToClose, setProjectToClose] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
@@ -135,18 +137,26 @@ function ProjectManager({ onSelectProject }) {
     ).min(1, 'Debes agregar al menos un miembro'),
   });
 
-  const handleCloseProject = async (projectId) => {
+  const handleCloseProject = async () => {
+    if (!projectToClose) return;
     try {
-      const updated = await updateProject(projectId, { status: "Finalizado" });
+      const updated = await updateProject(projectToClose._id, { status: "Finalizado" });
       // Actualizar la lista filtrando otra vez
       const data = await getProjects();
       const enProgreso = data.filter(proj => proj.status === "En progreso");
       setProjects(enProgreso);
+      setShowConfirmCloseModal(false);
+      setProjectToClose(null);
     } catch (error) {
       console.error("Error al cerrar el proyecto:", error);
     }
   };
-  
+
+  const handleConfirmCloseClick = (project) => {
+    setProjectToClose(project);
+    setShowConfirmCloseModal(true);
+  };
+
   return (
     <div>
       <h3>Mis Proyectos</h3>
@@ -176,7 +186,6 @@ function ProjectManager({ onSelectProject }) {
                         size="sm"
                         onClick={() => handleViewDetails(project._id)}
                         className="me-2"
-                        class=""
                       >
                         Ver Detalles
                       </Button>
@@ -191,10 +200,10 @@ function ProjectManager({ onSelectProject }) {
                       <Button
                         variant="warning"
                         size="sm"
-                        onClick={() => handleCloseProject(project._id)}>
+                        onClick={() => handleConfirmCloseClick(project)}
+                      >
                         Cerrar Proyecto
                       </Button>
-
                     </div>
                   </div>
                 </Card.Body>
@@ -314,6 +323,24 @@ function ProjectManager({ onSelectProject }) {
             )}
           </Formik>
         </Modal.Body>
+      </Modal>
+
+      {/* Modal de confirmación para cerrar proyecto */}
+      <Modal show={showConfirmCloseModal} onHide={() => setShowConfirmCloseModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Cierre de Proyecto</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Estás seguro de que quieres cerrar el proyecto <strong>{projectToClose?.name}</strong>?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmCloseModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="warning" onClick={handleCloseProject}>
+            Cerrar Proyecto
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

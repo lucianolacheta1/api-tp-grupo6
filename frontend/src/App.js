@@ -12,6 +12,7 @@ import ProjectDetails from './components/Projects/ProjectDetails';
 import { AuthProvider } from './components/Auth/AuthContext';
 import MainLayout from './components/Common/MainLayout'; // Importamos el layout
 import FriendsManager from './components/Dashboard/FriendsManager'; // Ejemplo, ajústalo según tu estructura
+import HistoryReports from './components/Dashboard/HistoryReports';
 
 function App() {
   // Estado para manejar el modal de inicio de sesión
@@ -37,6 +38,7 @@ function App() {
               <Route path="/projects" element={<ProjectManager />} />
               <Route path="/projects/:id" element={<ProjectDetails />} />
               <Route path="/friends" element={<FriendsManager />} />
+              <Route path="/history" element={<HistoryReports />} />
               {/* Aquí puedes agregar la ruta a /history cuando la implementes */}
             </Route>
 

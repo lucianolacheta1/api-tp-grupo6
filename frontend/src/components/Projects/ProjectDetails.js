@@ -29,10 +29,10 @@ function ProjectDetails({ setActiveSection }) {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+  const [showConfirmCloseModal, setShowConfirmCloseModal] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState(null);
   const [memberModalError, setMemberModalError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
-
 
   // Limpiar mensajes después de 10 segundos
   useEffect(() => {
@@ -163,18 +163,21 @@ function ProjectDetails({ setActiveSection }) {
     }
   };
 
-  const handleCloseProjectFromDetails = async () => {
+  const handleCloseProject = async () => {
     try {
       const updated = await updateProject(id, { status: "Finalizado" });
       setProject(updated); 
-      // Opcional: mostrar mensaje de éxito
+      setShowConfirmCloseModal(false);
       setSuccessMessage("Proyecto cerrado exitosamente.");
     } catch (error) {
       console.error("Error al cerrar el proyecto:", error);
       setErrorMessage("No se pudo cerrar el proyecto.");
     }
   };
-  
+
+  const handleConfirmCloseClick = () => {
+    setShowConfirmCloseModal(true);
+  };
 
   if (loading) return <p>Cargando...</p>;
   if (!project) return <p>{errorMessage || 'Proyecto no encontrado'}</p>;
@@ -249,10 +252,9 @@ function ProjectDetails({ setActiveSection }) {
 
       {project.status === "En progreso" && (
         <div className="text-center mt-4">
-          <Button variant="warning" onClick={handleCloseProjectFromDetails}>Cerrar Proyecto</Button>
+          <Button variant="warning" onClick={handleConfirmCloseClick}>Cerrar Proyecto</Button>
         </div>
       )}
-
 
       {/* Modal para añadir miembros */}
       <Modal show={showAddMemberModal} onHide={() => setShowAddMemberModal(false)}>
@@ -334,6 +336,24 @@ function ProjectDetails({ setActiveSection }) {
           onHide={() => setShowEditTicketModal(false)}
         />
       )}
+
+      {/* Modal de confirmación para cerrar proyecto */}
+      <Modal show={showConfirmCloseModal} onHide={() => setShowConfirmCloseModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Cierre de Proyecto</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Estás seguro de que quieres cerrar el proyecto <strong>{project?.name}</strong>?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmCloseModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="warning" onClick={handleCloseProject}>
+            Cerrar Proyecto
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
