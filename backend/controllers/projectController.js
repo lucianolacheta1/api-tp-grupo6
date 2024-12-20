@@ -1,5 +1,8 @@
 const Project = require('../models/Project');
 const User = require('../models/User');
+const Friend = require('../models/Friend');
+const sendMail = require('../config/mailer');
+
 
 // Obtener todos los proyectos del usuario autenticado
 exports.getAllProjects = async (req, res) => {
@@ -202,29 +205,56 @@ exports.deleteTicketFromProject = async (req, res) => {
   }
 };
 
-// Añadir miembro al proyecto existente
+// Añadir un miembro al proyecto
 exports.addMemberToProject = async (req, res) => {
-  const { id } = req.params; // ID del proyecto
-  const { name, userId, isTemporary } = req.body; // Información del nuevo miembro
+  const { projectId } = req.params;
+  const { friendId, name } = req.body;
 
   try {
-    const project = await Project.findOne({ _id: id, userId: req.user.userId });
+    const project = await Project.findById(projectId);
     if (!project) {
       return res.status(404).json({ message: 'Proyecto no encontrado' });
     }
 
-    // Añadir miembro al proyecto
-    project.members.push({ name, userId, isTemporary });
+    let newMember;
+    if (friendId) {
+      const friend = await Friend.findById(friendId);
+      if (!friend) {
+        return res.status(404).json({ message: 'Amigo no encontrado' });
+      }
+      newMember = {
+        userId: friendId,
+        name: friend.name,
+        isTemporary: false,
+      };
+    } else {
+      if (!name) {
+        return res.status(400).json({ message: 'El nombre es obligatorio si no seleccionas un amigo' });
+      }
+      newMember = {
+        name,
+        userId: null,
+        isTemporary: true,
+      };
+    }
+
+    project.members.push(newMember);
     await project.save();
 
-    res.status(201).json({ message: 'Miembro añadido exitosamente', project });
+    if (!newMember.isTemporary) {
+      const subject = 'Has sido añadido a un nuevo proyecto';
+      const text = `Hola ${newMember.name},\n\nHas sido añadido al proyecto "${project.name}".\n\nSaludos,\nEquipo de Proyectos`;
+      await sendMail(friend.email, subject, text);
+    }
+
+    res.status(201).json({ message: 'Miembro añadido con éxito', project });
   } catch (err) {
     console.error('Error al añadir miembro al proyecto:', err);
     res.status(500).json({ message: 'Error al añadir miembro al proyecto' });
   }
 };
 
-    // Eliminar miembro del proyecto
+// Eliminar miembro del proyecto
 exports.deleteMemberFromProject = async (req, res) => {
   const { id, memberId } = req.params;
 

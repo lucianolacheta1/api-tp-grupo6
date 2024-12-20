@@ -34,7 +34,9 @@ const ticketSchema = new mongoose.Schema({
       memberId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
+        required: function () {
+          return this.divisionType === 'porcentual';
+        },
       },
       percentage: {
         type: Number,

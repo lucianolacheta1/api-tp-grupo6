@@ -40,10 +40,9 @@ router.put('/:projectId/tickets/:ticketId', authenticateToken, updateTicketInPro
 router.delete('/:projectId/tickets/:ticketId', authenticateToken, deleteTicketFromProject);
 
 // Ruta para añadir un miembro al proyecto
-router.post('/:id/members', authenticateToken, addMemberToProject);
-
+router.post('/:projectId/members', authenticateToken, addMemberToProject);
 // Eliminar un miembro de un proyecto
-router.delete('/:id/members/:memberId', authenticateToken, deleteMemberFromProject);
+router.delete('/:projectId/members', authenticateToken, deleteMemberFromProject);
 
 
 module.exports = router;

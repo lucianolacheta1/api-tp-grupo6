@@ -55,18 +55,15 @@ function ProjectManager({ onSelectProject }) {
         return;
       }
 
-      // Crear array de miembros a partir del FieldArray
       const members = values.members.map((m) => {
         if (m.friendId && m.friendId !== '') {
-          // Seleccionó un amigo existente
           const friendSelected = friends.find((f) => f._id === m.friendId);
           return {
             name: friendSelected.name,
-            userId: friendSelected.userId || null,
+            userId: friendSelected._id || null,
             isTemporary: false,
           };
         } else {
-          // Miembro temporal ingresado manualmente
           return {
             name: m.name,
             userId: null,
@@ -88,7 +85,6 @@ function ProjectManager({ onSelectProject }) {
         setProjects((prevProjects) => [...prevProjects, createdProject]);
         resetForm();
         setShowModal(false);
-        // Navegar a la página de detalles del nuevo proyecto
         navigate(`/projects/${createdProject._id}`);
       } catch (error) {
         console.error('Error al crear el proyecto:', error);
