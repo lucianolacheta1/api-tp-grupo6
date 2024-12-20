@@ -8,7 +8,19 @@ exports.addFriend = async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    // Elimina la verificación de usuario existente
+    // Verificar si el usuario existe
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(404).json({ message: 'No existe ningún usuario con ese email.' });
+    }
+
+    // Verificar si ya es amigo del usuario actual
+    const existingFriend = await Friend.findOne({ userId, email });
+    if (existingFriend) {
+      return res.status(400).json({ message: 'Este usuario ya es tu amigo.' });
+    }
+
+    // Crear un nuevo amigo
     const newFriend = new Friend({ userId, name, email });
     await newFriend.save();
     res.status(201).json({ message: 'Amigo añadido con éxito', friend: newFriend });
@@ -17,6 +29,7 @@ exports.addFriend = async (req, res) => {
     res.status(500).json({ message: 'Error al añadir el amigo' });
   }
 };
+
 
 // Obtener amigos del usuario autenticado
 exports.getFriends = async (req, res) => {
