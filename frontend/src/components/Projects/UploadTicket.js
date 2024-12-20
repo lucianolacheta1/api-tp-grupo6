@@ -83,7 +83,10 @@ const UploadTicket = ({ onUpload, onUpdate, mode = 'create', initialValues, memb
       })),
       paidBy: values.paidBy,
       divisionType: values.divisionType,
-      divisionMembers: values.divisionMembers,
+      divisionMembers: values.divisionMembers.map((dm) => ({
+        memberId: dm.memberId,
+        percentage: dm.percentage,
+      })),
     };
 
     if (isEditMode && onUpdate) {

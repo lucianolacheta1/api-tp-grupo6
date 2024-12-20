@@ -74,7 +74,11 @@ function ProjectDetails({ setActiveSection }) {
   const handleUploadTicket = async (ticketData) => {
     try {
       const response = await addTicketToProject(id, ticketData);
-      setProject(response.project);
+      console.log('Ticket añadido exitosamente:', response.project);
+      setProject((prevProject) => ({
+        ...prevProject,
+        tickets: [...prevProject.tickets, response.project.tickets[response.project.tickets.length - 1]],
+      }));
       setSuccessMessage('Ticket añadido exitosamente.');
       setRefreshKey(refreshKey + 1);
     } catch (error) {

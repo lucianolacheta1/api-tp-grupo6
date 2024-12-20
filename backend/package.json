@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "name": "splitwise-backend",
   "version": "1.0.0",
   "description": "Backend for the Splitwise-like app",
@@ -19,29 +18,10 @@
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.3",
-    "nodemailer": "^6.9.16"
+    "nodemailer": "^6.9.16",
+    "splitwise-backend": "file:"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"
   }
-=======
-    "name": "backend",
-    "version": "1.0.0",
-    "main": "server.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "node server.js"
-        
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "description": "",
-    "dependencies": {
-        "backend": "file:",
-        "dotenv": "^16.4.5",
-        "express": "^4.21.1",
-        "mongoose": "^8.8.3"
-    }
->>>>>>> 516becaee54ae9d835eaed5f64d93ca384b50a5e
 }

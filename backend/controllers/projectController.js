@@ -1,7 +1,8 @@
-const Project = require('../models/Project');
+const Project = require('../models/Projects');
 const User = require('../models/User');
 const Friend = require('../models/Friend');
 const sendMail = require('../config/mailer');
+const mongoose = require('mongoose');
 
 // Obtener todos los proyectos del usuario autenticado
 exports.getAllProjects = async (req, res) => {
@@ -142,27 +143,31 @@ exports.addTicketToProject = async (req, res) => {
 
     // Enviar correo electrónico a los miembros del ticket
     for (const member of divisionMembers) {
-      const friend = await Friend.findById(member.memberId);
-      if (friend) {
-        const subject = 'Nuevo ticket añadido a un proyecto';
-        const text = `Hola ${friend.name},\n\nSe ha añadido un nuevo ticket al proyecto "${project.name}".\n\nDetalles del proyecto:\nNombre: ${project.name}\nDescripción: ${project.detail}\n\nSaludos,\nEquipo de Proyectos`;
-        
-        try {
-          console.log(`Sending email to ${friend.email} with subject "${subject}" and text "${text}"`);
-          await sendMail(friend.email, subject, text);
-          console.log(`Email sent to ${friend.email}`);
-        } catch (emailError) {
-          console.error('Error sending email:', emailError);
+      if (mongoose.Types.ObjectId.isValid(member.memberId)) {
+        const friend = await Friend.findById(member.memberId);
+        if (friend) {
+          const subject = 'Nuevo ticket añadido a un proyecto';
+          const text = `Hola ${friend.name},\n\nSe ha añadido un nuevo ticket al proyecto "${project.name}".\n\nDetalles del proyecto:\nNombre: ${project.name}\nDescripción: ${project.detail}\n\nSaludos,\nEquipo de Proyectos`;
+          
+          try {
+            console.log(`Sending email to ${friend.email} with subject "${subject}" and text "${text}"`);
+            await sendMail(friend.email, subject, text);
+            console.log(`Email sent to ${friend.email}`);
+          } catch (emailError) {
+            console.error('Error sending email:', emailError);
+          }
+        } else {
+          console.log(`Friend with ID ${member.memberId} not found`);
         }
       } else {
-        console.log(`Friend with ID ${member.memberId} not found`);
+        console.log(`Invalid ObjectId: ${member.memberId}`);
       }
     }
 
     res.status(201).json({ message: 'Ticket añadido exitosamente', project });
   } catch (err) {
     console.error('Error al añadir el ticket al proyecto:', err);
-    res.status(500).json({ message: 'Error al añadir el ticket al proyecto' });
+    res.status(500).json({ message: 'Error al añadir el ticket al proyecto', error: err.message });
   }
 };
 

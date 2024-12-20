@@ -1,37 +1,8 @@
 {
-<<<<<<< HEAD
   "name": "backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-=======
-  "name": "splitwise",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "aos": "^2.3.4",
-    "axios": "^1.7.7",
-    "body-parser": "^1.20.3",
-    "bootstrap": "^5.3.0",
-    "formik": "^2.4.6",
-    "popper.js": "^1.16.1",
-    "prop-types": "^15.8.1",
-    "react": "^18.3.1",
-    "react-bootstrap": "^2.7.4",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2",
-    "react-scripts": "^5.0.1",
-    "react-scroll": "^1.9.0",
-    "splitwise": "file:",
-    "styled": "^1.0.0",
-    "styled-components": "^6.1.13",
-    "web-vitals": "^2.1.4",
-    "yup": "^1.4.0"
-  },
->>>>>>> 516becaee54ae9d835eaed5f64d93ca384b50a5e
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -40,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "backend": "file:",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
