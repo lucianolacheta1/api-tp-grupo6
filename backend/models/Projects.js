@@ -10,6 +10,7 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+<<<<<<< HEAD:backend/models/Project.js
 });
 
 // Esquema de ticket
@@ -104,6 +105,12 @@ const projectSchema = new mongoose.Schema({
       percentages: [Number],
     },
   ],
+=======
+  status: {
+    type: String,
+    required: true,
+  },
+>>>>>>> 516becaee54ae9d835eaed5f64d93ca384b50a5e:backend/models/Projects.js
   createdAt: {
     type: Date,
     default: Date.now,
