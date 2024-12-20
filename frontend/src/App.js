@@ -11,7 +11,7 @@ import ProjectManager from './components/Projects/ProjectManager';
 import ProjectDetails from './components/Projects/ProjectDetails';
 import { AuthProvider } from './components/Auth/AuthContext';
 import MainLayout from './components/Common/MainLayout'; // Importamos el layout
-import FriendsManager from './components/Dashboard/FriendsManager'; // Ejemplo, ajústalo según tu estructura
+import FriendsManager from './components/Dashboard/FriendsManager'; 
 import HistoryReports from './components/Dashboard/HistoryReports';
 
 function App() {
