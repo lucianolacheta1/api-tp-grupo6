@@ -1,7 +1,7 @@
 // src/components/Common/MainLayout.js
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from './../Dashboard/Sidebar'; // Ajusta la ruta según tu estructura
+import Sidebar from './../Dashboard/Sidebar'; 
 
 const MainLayout = () => {
   return (

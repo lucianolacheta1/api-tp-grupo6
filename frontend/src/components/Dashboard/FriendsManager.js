@@ -38,8 +38,12 @@ function FriendsManager() {
       setShowModal(false);
     } catch (error) {
       console.error('Error adding friend:', error);
-      setModalErrorMessage('No se pudo añadir el amigo. Por favor, inténtelo más tarde.');
-    }
+      if (error.response && error.response.status === 404) {
+        setModalErrorMessage(error.response.data.message || 'El email ingresado no está asociado a una cuenta existente.');
+      } else {
+        setModalErrorMessage('No se pudo añadir el amigo. Por favor, inténtelo más tarde.');
+      }
+    }    
   };
 
   const handleDeleteClick = (friend) => {
