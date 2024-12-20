@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col, ButtonGroup, Button } from 'react-bootstrap';
 import ProjectManager from '../Projects/ProjectManager';
 import ProjectDetails from '../Projects/ProjectDetails';
 import FriendsManager from './FriendsManager';
 import ExpensesManager from './ExpensesManager';
 import HistoryReports from './HistoryReports';
-import { getFriends } from '../../api';
+import { getFriends, getProjects } from '../../api';
 
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState('projects');
@@ -13,6 +13,18 @@ const Dashboard = () => {
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const projectsData = await getProjects();
+        setProjects(projectsData);
+      } catch (error) {
+        console.error('Error al obtener proyectos:', error);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   useEffect(() => {
     if (activeSection === 'friends') {
@@ -29,7 +41,7 @@ const Dashboard = () => {
   }, [activeSection]);
 
   const handleSelectProject = (projectId) => {
-    const project = projects.find((proj) => proj.id === projectId);
+    const project = projects.find((proj) => proj._id === projectId);
     setSelectedProject(project);
     setActiveSection('projectDetails');
   };
@@ -42,8 +54,22 @@ const Dashboard = () => {
   return (
     <Container fluid className="mt-4">
       <Row>
-        {/* Contenido principal ocupando todo el ancho (asumiendo que el Sidebar está en el layout) */}
         <Col xs={12} className="pt-4">
+          <ButtonGroup className="mb-3">
+            <Button variant="outline-primary" onClick={() => setActiveSection('projects')}>
+              Proyectos
+            </Button>
+            <Button variant="outline-primary" onClick={() => setActiveSection('friends')}>
+              Amigos
+            </Button>
+            <Button variant="outline-primary" onClick={() => setActiveSection('expenses')}>
+              Gastos
+            </Button>
+            <Button variant="outline-primary" onClick={() => setActiveSection('history')}>
+              Historial
+            </Button>
+          </ButtonGroup>
+
           {activeSection === 'projects' && !selectedProject && (
             <ProjectManager
               projects={projects}
@@ -58,7 +84,7 @@ const Dashboard = () => {
               onBack={handleBackToProjects}
               onUpdateProject={(updatedProject) => {
                 const updatedProjects = projects.map((project) =>
-                  project.id === updatedProject.id ? updatedProject : project
+                  project._id === updatedProject._id ? updatedProject : project
                 );
                 setProjects(updatedProjects);
                 setSelectedProject(updatedProject);

@@ -10,7 +10,7 @@ import {
   deleteMemberFromProject,
   getFriends,
 } from '../../api';
-import { Formik } from 'formik';
+import { Formik, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import UploadTicket from './UploadTicket';
 import TicketCard from './TicketCard';
@@ -28,16 +28,6 @@ function ProjectDetails({ setActiveSection }) {
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState(null);
   const [memberModalError, setMemberModalError] = useState('');
-
-  // Limpiar mensajes después de 15 segundos
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setErrorMessage('');
-      setSuccessMessage('');
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, [errorMessage, successMessage]);
 
   useEffect(() => {
     if (typeof setActiveSection === 'function') {
@@ -57,7 +47,6 @@ function ProjectDetails({ setActiveSection }) {
         });
         setFriends(friendsData);
       } catch (error) {
-        console.error('Error fetching project details or friends:', error);
         setErrorMessage('No se pudo cargar el proyecto. Por favor, inténtelo más tarde.');
       } finally {
         setLoading(false);
@@ -79,7 +68,6 @@ function ProjectDetails({ setActiveSection }) {
       setShowEditTicketModal(false);
       setSuccessMessage('Ticket actualizado exitosamente.');
     } catch (error) {
-      console.error('Error updating ticket:', error);
       setErrorMessage('Ocurrió un error al actualizar el ticket.');
     }
   };
@@ -90,7 +78,6 @@ function ProjectDetails({ setActiveSection }) {
       setProject(response.project);
       setSuccessMessage('Ticket eliminado exitosamente.');
     } catch (error) {
-      console.error('Error deleting ticket:', error);
       setErrorMessage('Ocurrió un error al eliminar el ticket.');
     }
   };
@@ -101,7 +88,6 @@ function ProjectDetails({ setActiveSection }) {
       setProject(response.project);
       setSuccessMessage('Ticket añadido exitosamente.');
     } catch (error) {
-      console.error('Error adding ticket:', error);
       setErrorMessage('No se pudo agregar el ticket. Por favor, inténtelo más tarde.');
     }
   };
@@ -119,7 +105,6 @@ function ProjectDetails({ setActiveSection }) {
       resetForm();
       setSuccessMessage('Miembro añadido exitosamente.');
     } catch (error) {
-      console.error('Error adding member:', error);
       setMemberModalError('No se pudo añadir el miembro. Inténtelo más tarde.');
     }
   };
@@ -135,7 +120,6 @@ function ProjectDetails({ setActiveSection }) {
       setProject(response.project);
       setSuccessMessage('Miembro eliminado exitosamente.');
     } catch (error) {
-      console.error('Error deleting member:', error);
       setErrorMessage('No se pudo eliminar el miembro.');
     } finally {
       setShowConfirmDeleteModal(false);
@@ -170,8 +154,6 @@ function ProjectDetails({ setActiveSection }) {
         </Alert>
       )}
 
-
-      {/* Gestión de Miembros */}
       <h4>Miembros</h4>
       <Button variant="primary" className="mb-3" onClick={() => setShowAddMemberModal(true)}>
         Añadir Miembro
@@ -194,8 +176,6 @@ function ProjectDetails({ setActiveSection }) {
         ))}
       </ul>
 
-
-      {/* Gestión de Tickets */}
       <h4>Tickets</h4>
       <UploadTicket onUpload={handleUploadTicket} members={project.members} />
       <Row xs={1} md={3} className="g-4 mt-3">
@@ -211,7 +191,6 @@ function ProjectDetails({ setActiveSection }) {
         ))}
       </Row>
 
-      {/* Modal para añadir miembros */}
       <Modal show={showAddMemberModal} onHide={() => setShowAddMemberModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Añadir Miembro</Modal.Title>
@@ -259,7 +238,6 @@ function ProjectDetails({ setActiveSection }) {
         </Modal.Body>
       </Modal>
 
-      {/* Modal de confirmación para eliminar miembros */}
       <Modal show={showConfirmDeleteModal} onHide={() => setShowConfirmDeleteModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Eliminar Miembro</Modal.Title>

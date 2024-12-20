@@ -3,7 +3,6 @@ const User = require('../models/User');
 const Friend = require('../models/Friend');
 const sendMail = require('../config/mailer');
 
-
 // Obtener todos los proyectos del usuario autenticado
 exports.getAllProjects = async (req, res) => {
   try {
@@ -24,7 +23,6 @@ exports.createProject = async (req, res) => {
       return res.status(400).json({ message: 'Ya existe un proyecto con ese nombre' });
     }
 
-    // Obtener el usuario autenticado para usar su nombre
     const user = await User.findById(req.user.userId);
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -38,17 +36,11 @@ exports.createProject = async (req, res) => {
         isTemporary: false,
       }];
     } else {
-      // Forzar el primer miembro a ser el usuario actual
       finalMembers[0] = {
         name: user.username,
         userId: user._id,
         isTemporary: false
       };
-    }
-
-    // Checar que el primer miembro tenga nombre
-    if (!finalMembers[0].name) {
-      return res.status(400).json({ message: 'Debes proporcionar al menos un miembro con nombre.' });
     }
 
     const project = new Project({
@@ -61,10 +53,8 @@ exports.createProject = async (req, res) => {
     });
 
     const newProject = await project.save();
-    console.log('Proyecto guardado exitosamente en la base de datos:', newProject);
     res.status(201).json(newProject);
   } catch (err) {
-    console.error('Error al crear el proyecto:', err);
     res.status(400).json({ message: 'Error al crear el proyecto' });
   }
 };
@@ -143,7 +133,6 @@ exports.addTicketToProject = async (req, res) => {
 
     res.status(201).json({ message: 'Ticket añadido exitosamente', project });
   } catch (err) {
-    console.error('Error al añadir el ticket al proyecto:', err);
     res.status(500).json({ message: 'Error al añadir el ticket al proyecto' });
   }
 };
@@ -164,7 +153,6 @@ exports.updateTicketInProject = async (req, res) => {
       return res.status(404).json({ message: 'Ticket no encontrado' });
     }
 
-    // Actualizar los campos del ticket
     if (date) ticket.date = date;
     if (products) ticket.products = products;
     if (paidBy) ticket.paidBy = paidBy;
@@ -175,7 +163,6 @@ exports.updateTicketInProject = async (req, res) => {
 
     res.status(200).json({ message: 'Ticket actualizado exitosamente', project });
   } catch (err) {
-    console.error('Error al actualizar el ticket:', err);
     res.status(500).json({ message: 'Error al actualizar el ticket' });
   }
 };
@@ -200,7 +187,6 @@ exports.deleteTicketFromProject = async (req, res) => {
 
     res.status(200).json({ message: 'Ticket eliminado exitosamente', project });
   } catch (err) {
-    console.error('Error al eliminar el ticket:', err);
     res.status(500).json({ message: 'Error al eliminar el ticket' });
   }
 };
@@ -249,7 +235,6 @@ exports.addMemberToProject = async (req, res) => {
 
     res.status(201).json({ message: 'Miembro añadido con éxito', project });
   } catch (err) {
-    console.error('Error al añadir miembro al proyecto:', err);
     res.status(500).json({ message: 'Error al añadir miembro al proyecto' });
   }
 };
@@ -264,14 +249,12 @@ exports.deleteMemberFromProject = async (req, res) => {
       return res.status(404).json({ message: 'Proyecto no encontrado' });
     }
 
-    // Filtrar al miembro a eliminar
     const updatedMembers = project.members.filter((member) => member._id.toString() !== memberId);
     project.members = updatedMembers;
 
     await project.save();
     res.status(200).json({ message: 'Miembro eliminado exitosamente', project });
   } catch (err) {
-    console.error('Error al eliminar miembro del proyecto:', err);
     res.status(500).json({ message: 'Error al eliminar miembro del proyecto' });
   }
 };
