@@ -83,10 +83,7 @@ const UploadTicket = ({ onUpload, onUpdate, mode = 'create', initialValues, memb
       })),
       paidBy: values.paidBy,
       divisionType: values.divisionType,
-      divisionMembers: values.divisionMembers.map((dm) => ({
-        memberId: dm.memberId,
-        percentage: dm.percentage,
-      })),
+      divisionMembers: values.divisionMembers,
     };
 
     if (isEditMode && onUpdate) {
@@ -119,7 +116,7 @@ const UploadTicket = ({ onUpload, onUpdate, mode = 'create', initialValues, memb
             handleBlur,
             handleSubmit,
             isSubmitting,
-            setFieldValue 
+            setFieldValue // <- Importante: agregamos setFieldValue aquí
           }) => (
             <Form noValidate onSubmit={handleSubmit}>
               <Form.Group controlId="date">

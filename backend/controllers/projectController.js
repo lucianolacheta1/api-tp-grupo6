@@ -1,8 +1,5 @@
-const Project = require('../models/Projects');
+const Project = require('../models/Project');
 const User = require('../models/User');
-const Friend = require('../models/Friend');
-const sendMail = require('../config/mailer');
-const mongoose = require('mongoose');
 
 // Obtener todos los proyectos del usuario autenticado
 exports.getAllProjects = async (req, res) => {
@@ -141,33 +138,10 @@ exports.addTicketToProject = async (req, res) => {
     project.tickets.push(newTicket);
     await project.save();
 
-    // Enviar correo electrónico a los miembros del ticket
-    for (const member of divisionMembers) {
-      if (mongoose.Types.ObjectId.isValid(member.memberId)) {
-        const friend = await Friend.findById(member.memberId);
-        if (friend) {
-          const subject = 'Nuevo ticket añadido a un proyecto';
-          const text = `Hola ${friend.name},\n\nSe ha añadido un nuevo ticket al proyecto "${project.name}".\n\nDetalles del proyecto:\nNombre: ${project.name}\nDescripción: ${project.detail}\n\nSaludos,\nEquipo de Proyectos`;
-          
-          try {
-            console.log(`Sending email to ${friend.email} with subject "${subject}" and text "${text}"`);
-            await sendMail(friend.email, subject, text);
-            console.log(`Email sent to ${friend.email}`);
-          } catch (emailError) {
-            console.error('Error sending email:', emailError);
-          }
-        } else {
-          console.log(`Friend with ID ${member.memberId} not found`);
-        }
-      } else {
-        console.log(`Invalid ObjectId: ${member.memberId}`);
-      }
-    }
-
     res.status(201).json({ message: 'Ticket añadido exitosamente', project });
   } catch (err) {
     console.error('Error al añadir el ticket al proyecto:', err);
-    res.status(500).json({ message: 'Error al añadir el ticket al proyecto', error: err.message });
+    res.status(500).json({ message: 'Error al añadir el ticket al proyecto' });
   }
 };
 
@@ -230,47 +204,27 @@ exports.deleteTicketFromProject = async (req, res) => {
 
 // Añadir miembro al proyecto existente
 exports.addMemberToProject = async (req, res) => {
-  const { projectId } = req.params;
-  const { friendId } = req.body;
+  const { id } = req.params; // ID del proyecto
+  const { name, userId, isTemporary } = req.body; // Información del nuevo miembro
 
   try {
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({ _id: id, userId: req.user.userId });
     if (!project) {
       return res.status(404).json({ message: 'Proyecto no encontrado' });
     }
 
-    const friend = await Friend.findById(friendId);
-    if (!friend) {
-      return res.status(404).json({ message: 'Amigo no encontrado' });
-    }
-
-    const newMember = {
-      userId: friendId,
-      name: friend.name,
-    };
-
-    project.members.push(newMember);
+    // Añadir miembro al proyecto
+    project.members.push({ name, userId, isTemporary });
     await project.save();
 
-    // Enviar correo electrónico
-    const subject = 'Has sido añadido a un nuevo proyecto';
-    const text = `Hola ${friend.name},\n\nHas sido añadido al proyecto "${project.name}".\n\nDetalles del proyecto:\nNombre: ${project.name}\nDescripción: ${project.detail}\n\nSaludos,\nEquipo de Proyectos`;
-    
-    try {
-      await sendMail(friend.email, subject, text);
-      console.log(`Email sent to ${friend.email}`);
-    } catch (emailError) {
-      console.error('Error sending email:', emailError);
-    }
-
-    res.status(201).json({ message: 'Miembro añadido con éxito', project });
+    res.status(201).json({ message: 'Miembro añadido exitosamente', project });
   } catch (err) {
     console.error('Error al añadir miembro al proyecto:', err);
     res.status(500).json({ message: 'Error al añadir miembro al proyecto' });
   }
 };
 
-// Eliminar miembro del proyecto
+    // Eliminar miembro del proyecto
 exports.deleteMemberFromProject = async (req, res) => {
   const { id, memberId } = req.params;
 
@@ -391,44 +345,5 @@ exports.getProjectBalances = async (req, res) => {
   } catch (err) {
     console.error('Error al obtener balances del proyecto:', err);
     res.status(500).json({ message: 'Error al obtener balances del proyecto' });
-  }
-};
-
-// Crear un nuevo proyecto y añadir un miembro
-exports.createProjectAndAddMember = async (req, res) => {
-  const { name, detail, friendId } = req.body;
-
-  try {
-    const friend = await Friend.findById(friendId);
-    if (!friend) {
-      return res.status(404).json({ message: 'Amigo no encontrado' });
-    }
-
-    const newProject = new Project({
-      name,
-      detail,
-      members: [{
-        userId: friendId,
-        name: friend.name,
-      }],
-    });
-
-    await newProject.save();
-
-    // Enviar correo electrónico
-    const subject = 'Has sido añadido a un nuevo proyecto';
-    const text = `Hola ${friend.name},\n\nHas sido añadido al proyecto "${newProject.name}".\n\nDetalles del proyecto:\nNombre: ${newProject.name}\nDescripción: ${newProject.detail}\n\nSaludos,\nEquipo de Proyectos`;
-    
-    try {
-      await sendMail(friend.email, subject, text);
-      console.log(`Email sent to ${friend.email}`);
-    } catch (emailError) {
-      console.error('Error sending email:', emailError);
-    }
-
-    res.status(201).json({ message: 'Proyecto creado y miembro añadido con éxito', project: newProject });
-  } catch (err) {
-    console.error('Error al crear proyecto y añadir miembro:', err);
-    res.status(500).json({ message: 'Error al crear proyecto y añadir miembro' });
   }
 };
