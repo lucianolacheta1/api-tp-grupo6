@@ -116,7 +116,7 @@ const UploadTicket = ({ onUpload, onUpdate, mode = 'create', initialValues, memb
             handleBlur,
             handleSubmit,
             isSubmitting,
-            setFieldValue 
+            setFieldValue // <- Importante: agregamos setFieldValue aquí
           }) => (
             <Form noValidate onSubmit={handleSubmit}>
               <Form.Group controlId="date">

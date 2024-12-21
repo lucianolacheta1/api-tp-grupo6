@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Card, Button } from 'react-bootstrap';
-import { getProjects, updateProject } from '../../api';
+import { getProjects, updateProject } from '../../api'; // Import the API functions
 import { useNavigate } from 'react-router-dom';
 
 const HistoryReports = () => {

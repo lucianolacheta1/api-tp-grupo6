@@ -27,7 +27,7 @@ function TicketCard({ ticket, onEdit, onDelete, members }) {
           ))}
         </ul>
         {onEdit && (
-          <Button variant="secondary" onClick={() => onEdit(ticket)} className="me-2">
+          <Button variant="secondary" onClick={() => onEdit(ticket)} className="mr-2">
             Editar Ticket
           </Button>
         )}

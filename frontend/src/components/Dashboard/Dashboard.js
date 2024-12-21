@@ -42,6 +42,7 @@ const Dashboard = () => {
   return (
     <Container fluid className="mt-4">
       <Row>
+        {/* Contenido principal ocupando todo el ancho (asumiendo que el Sidebar está en el layout) */}
         <Col xs={12} className="pt-4">
           {activeSection === 'projects' && !selectedProject && (
             <ProjectManager

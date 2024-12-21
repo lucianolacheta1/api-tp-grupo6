@@ -9,7 +9,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    
+    // Quitar o comentar logs innecesarios
+    // console.log('Verificando el token desde localStorage:', token);
+
     if (token) {
       setIsAuthLoading(true);
       axios
